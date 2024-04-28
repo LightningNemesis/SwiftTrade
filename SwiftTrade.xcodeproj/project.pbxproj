@@ -11,6 +11,8 @@
 		EF00E6C12BCF536200E19735 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF00E6C02BCF536200E19735 /* ContentView.swift */; };
 		EF00E6C32BCF536400E19735 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF00E6C22BCF536400E19735 /* Assets.xcassets */; };
 		EF00E6C62BCF536400E19735 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF00E6C52BCF536400E19735 /* Preview Assets.xcassets */; };
+		EF9F6E092BDDBA5A007C5977 /* HomeScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E082BDDBA5A007C5977 /* HomeScreenView.swift */; };
+		EF9F6E0B2BDDE9D6007C5977 /* StockDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E0A2BDDE9D6007C5977 /* StockDetailsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +21,8 @@
 		EF00E6C02BCF536200E19735 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EF00E6C22BCF536400E19735 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EF00E6C52BCF536400E19735 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		EF9F6E082BDDBA5A007C5977 /* HomeScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreenView.swift; sourceTree = "<group>"; };
+		EF9F6E0A2BDDE9D6007C5977 /* StockDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockDetailsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +57,8 @@
 			children = (
 				EF00E6BE2BCF536200E19735 /* SwiftTradeApp.swift */,
 				EF00E6C02BCF536200E19735 /* ContentView.swift */,
+				EF9F6E082BDDBA5A007C5977 /* HomeScreenView.swift */,
+				EF9F6E0A2BDDE9D6007C5977 /* StockDetailsView.swift */,
 				EF00E6C22BCF536400E19735 /* Assets.xcassets */,
 				EF00E6C42BCF536400E19735 /* Preview Content */,
 			);
@@ -137,7 +143,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EF9F6E092BDDBA5A007C5977 /* HomeScreenView.swift in Sources */,
 				EF00E6C12BCF536200E19735 /* ContentView.swift in Sources */,
+				EF9F6E0B2BDDE9D6007C5977 /* StockDetailsView.swift in Sources */,
 				EF00E6BF2BCF536200E19735 /* SwiftTradeApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
