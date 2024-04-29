@@ -15,18 +15,18 @@ struct StockDetailsView: View {
     @State var stockPrice: Float = 172.57
     @State var changeInPrice: Float = 1.20
     @State var changeInPricePercent: Float = 0.70
-    
-    let columns: [GridItem] = [
-        GridItem(.flexible(), spacing: 6, alignment: nil),
-        GridItem(.flexible(), spacing: 6, alignment: nil),
-        GridItem(.flexible(), spacing: 6, alignment: nil)
-    ]
         
     @State var showTradeSheet: Bool = false
     @State var showNewsSheet: Bool = false
     
+    @StateObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
+    
     var body: some View {
-            ScrollView (showsIndicators:false){
+        ScrollView (showsIndicators:false){
+            
+            if stockDetailViewModel.isLoading{
+                ProgressView()
+            }else{
                 // Name, Price and Change in Price
                 NamePriceView(stockName: $stockName, stockPrice: $stockPrice, changeInPrice: $changeInPrice, changeInPricePercent: $changeInPricePercent)
                 
@@ -55,14 +55,13 @@ struct StockDetailsView: View {
                             
                         })
                         .sheet(isPresented: $showTradeSheet, content: {
-                            // DO NOT ADD CONDITIONAL LOGIC HERE
                             TradeSheetView()
                         })
                         
                     }
                     .padding(.vertical)
                 }
-                    
+                
                 // Stats subview
                 VStack{
                     Text("Stats")
@@ -106,7 +105,7 @@ struct StockDetailsView: View {
                     }
                     .padding(.vertical, 5)
                 }
-                    
+                
                 // About subview
                 VStack{
                     
@@ -128,8 +127,8 @@ struct StockDetailsView: View {
                         Spacer()
                         
                         VStack(alignment:.leading){
-                            Text("1980-12-12")
-                            Text("Technology")
+                            Text(stockDetailViewModel.stockOverview?.ipo ?? "1980")
+                            Text(stockDetailViewModel.stockOverview?.finnhubIndustry ?? "Technology")
                             Text("Https://www.apple.com")
                             ScrollView(.horizontal, showsIndicators:false, content:{
                                 LazyHStack{
@@ -155,7 +154,7 @@ struct StockDetailsView: View {
                     
                     // Highcharts comes here
                 }
-                    
+                
                 // News subview
                 VStack{
                     LazyVStack{
@@ -220,7 +219,7 @@ struct StockDetailsView: View {
                                     RoundedRectangle(cornerRadius:10)
                                         .fill(Color.purple)
                                         .frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/, height: 100)
-                                        
+                                    
                                 }
                                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
                             })
@@ -232,24 +231,32 @@ struct StockDetailsView: View {
                     }
                 }
             }
-            .padding(.horizontal)
-            .navigationTitle("AAPL")
-            .navigationBarItems(
-                leading: 
-                    Button(
-                        action: {
-                               self.presentationMode.wrappedValue.dismiss()
-                           }) {
-                               HStack {
-                                   Image(systemName: "chevron.left")
-                                   Text("Stocks")
-                               }
-                           },
-                trailing: 
-                    Image(systemName: "plus.circle")
-                    .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
-            )
-            .navigationBarBackButtonHidden(true)
+        }
+        .padding(.horizontal)
+        .navigationTitle("AAPL")
+        .navigationBarItems(
+            leading:
+                Button(
+                    action: {
+                        self.presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack {
+                            Image(systemName: "chevron.left")
+                            Text("Stocks")
+                        }
+                    },
+            trailing:
+                Image(systemName: "plus.circle")
+                .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+        )
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            Task {
+                await stockDetailViewModel.loadData()
+            }
+        }
+        
+        
     }
 }
 
@@ -257,103 +264,103 @@ struct TradeSheetView: View {
     @Environment(\.presentationMode) var presentationMode
     var body: some View {
         
-        ZStack{
-            Color(.green).ignoresSafeArea()
-            
-            VStack{
-                Spacer()
-                
-                Text("Congratulations!")
-                    .font(.largeTitle)
-                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                    .foregroundColor(.white)
-                
-                Text("You have successfully bought 3 shares of AAPL")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-                    .padding()
-                
-                Spacer()
-                
-                Button {
-                    presentationMode.wrappedValue.dismiss()
-                    } label: {
-                        Text("Done")
-                            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, maxHeight: 50)
-                            .background(.white)
-                            .cornerRadius(30)
-                            .foregroundColor(.green)
-                            .padding()
-                    }
-            }
-            
-        }
-        
-        
-//        VStack{
-//            Button(action: {
-//                presentationMode.wrappedValue.dismiss()
-//            }, label: {
-//                Image(systemName: "xmark")
-//                    .foregroundColor(.black)
-//                    .font(.title)
-//                    .padding(20)
-//            })
-//            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
+//        ZStack{
+//            Color(.green).ignoresSafeArea()
 //            
-//            Text("Trade Apple Inc shares")
-//                .font(.headline)
-//            
-//            Spacer()
-//            
-//            HStack{
-//                Text("\(0)")
-//                    .font(.largeTitle)
-//                    .foregroundColor(.gray)
+//            VStack{
 //                Spacer()
-//                Text("Share")
+//                
+//                Text("Congratulations!")
 //                    .font(.largeTitle)
-//            }
-//            .padding(.horizontal)
-//            
-//            Text(String(format: "x $%.2f/share = %.2f", 172.57, 0.00))
-//                .font(.headline)
-//                .foregroundColor(.gray)
-//                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
-//                .padding()
-//
-//            Spacer()
-//            
-//            Text("25000.00 available to buy AAPL")
-//                .font(.caption)
-//                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-//                .foregroundColor(.gray)
-//            
-//            
-//            HStack{
-//                Button {
-//                    
-//                } label: {
-//                    Text("Buy")
-//                        .frame(width: 150, height: 50)
-//                        .background(.green)
-//                        .cornerRadius(30)
-//                        .foregroundColor(.white)
-//                        .padding()
-//                }
+//                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+//                    .foregroundColor(.white)
+//                
+//                Text("You have successfully bought 3 shares of AAPL")
+//                    .font(.subheadline)
+//                    .foregroundColor(.white)
+//                    .padding()
+//                
+//                Spacer()
 //                
 //                Button {
-//                    
-//                } label: {
-//                    Text("Sell")
-//                        .frame(width: 150, height: 50)
-//                        .background(.green)
-//                        .cornerRadius(30)
-//                        .foregroundColor(.white)
-//                        .padding()
-//                }
+//                    presentationMode.wrappedValue.dismiss()
+//                    } label: {
+//                        Text("Done")
+//                            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, maxHeight: 50)
+//                            .background(.white)
+//                            .cornerRadius(30)
+//                            .foregroundColor(.green)
+//                            .padding()
+//                    }
 //            }
+//            
 //        }
+        
+        
+        VStack{
+            Button(action: {
+                presentationMode.wrappedValue.dismiss()
+            }, label: {
+                Image(systemName: "xmark")
+                    .foregroundColor(.black)
+                    .font(.title)
+                    .padding(20)
+            })
+            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
+            
+            Text("Trade Apple Inc shares")
+                .font(.headline)
+            
+            Spacer()
+            
+            HStack{
+                Text("\(0)")
+                    .font(.largeTitle)
+                    .foregroundColor(.gray)
+                Spacer()
+                Text("Share")
+                    .font(.largeTitle)
+            }
+            .padding(.horizontal)
+            
+            Text(String(format: "x $%.2f/share = %.2f", 172.57, 0.00))
+                .font(.headline)
+                .foregroundColor(.gray)
+                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
+                .padding()
+
+            Spacer()
+            
+            Text("25000.00 available to buy AAPL")
+                .font(.caption)
+                .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                .foregroundColor(.gray)
+            
+            
+            HStack{
+                Button {
+                    
+                } label: {
+                    Text("Buy")
+                        .frame(width: 150, height: 50)
+                        .background(.green)
+                        .cornerRadius(30)
+                        .foregroundColor(.white)
+                        .padding()
+                }
+                
+                Button {
+                    
+                } label: {
+                    Text("Sell")
+                        .frame(width: 150, height: 50)
+                        .background(.green)
+                        .cornerRadius(30)
+                        .foregroundColor(.white)
+                        .padding()
+                }
+            }
+        }
     }
 }
 
@@ -456,8 +463,7 @@ struct NamePriceView: View {
                 
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical)
-            //                    .background(.red)
+            .padding(.vertical)            
         }
     }
 }
