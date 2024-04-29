@@ -173,9 +173,6 @@ struct HomeScreenView: View {
     HomeScreenView()
 }
 
-
-
-
 struct DateView: View {
     @Binding var date: String
     

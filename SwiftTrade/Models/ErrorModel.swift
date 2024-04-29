@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+enum StockError: Error {
+    case invalidURL
+    case invalidResponse
+    case invalidData
+}
