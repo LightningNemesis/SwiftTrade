@@ -19,7 +19,7 @@ struct StockDetailsView: View {
     
     var body: some View {
         ScrollView (showsIndicators:false){
-            if stockDetailViewModel.isLoading {
+            if stockDetailViewModel.isLoading, portfolioViewModel.isLoading {
                 ProgressView()
             }else{
                 // Name, Price and Change in Price
@@ -115,7 +115,7 @@ struct NamePriceView: View {
 struct PortfolioView: View {
     @ObservedObject var stockDetailViewModel: StockDetailViewModel
     @EnvironmentObject var walletViewModel: WalletViewModel
-    @EnvironmentObject var portfolioViewModel: PortfolioViewModel  
+    @EnvironmentObject var portfolioViewModel: PortfolioViewModel
     @Binding var showTradeSheet: Bool
     
     var body: some View {
@@ -125,8 +125,60 @@ struct PortfolioView: View {
                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
             
             HStack{
-                Text("You have 0 shares of AAPL.\nStart trading!")
-                    .font(.subheadline)
+                if portfolioViewModel.portfolioModel.isEmpty || getPortfolioItem(ticker: stockDetailViewModel.stockOverview.ticker) == nil {
+                    Text("You have 0 shares of AAPL.\nStart trading!")
+                        .font(.subheadline)
+                } else {
+                    if let portfolioFoundItem = getPortfolioItem(ticker: stockDetailViewModel.stockOverview.ticker) {
+                        VStack(alignment: .leading){
+                            HStack{
+                                Text("Shares owned:")
+                                    .font(.subheadline)
+                                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                Text("\(portfolioFoundItem.quantity)")
+                                    .font(.subheadline)
+                            }
+                            .padding(.vertical, 5)
+                            
+                            HStack{
+                                Text("Avg. Cost / Share:")
+                                    .font(.subheadline)
+                                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                Text(String(format: "$%.2f", portfolioFoundItem.avgCost))
+                                    .font(.subheadline)
+                            }
+                            .padding(.vertical, 5)
+                            
+                            HStack{
+                                Text("Total Cost:")
+                                    .font(.subheadline)
+                                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                Text(String(format: "$%.2f", portfolioFoundItem.totalCost))
+                                    .font(.subheadline)
+                            }
+                            .padding(.vertical, 5)
+                            
+                            HStack{
+                                Text("Change:")
+                                    .font(.subheadline)
+                                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                Text(String(format: "$%.2f", portfolioFoundItem.change))
+                                    .font(.subheadline)
+                            }
+                            .padding(.vertical, 5)
+                            
+                            HStack{
+                                Text("Market Value:")
+                                    .font(.subheadline)
+                                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                Text(String(format: "$%.2f", portfolioFoundItem.marketValue))
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                    
+                }
+                
                 
                 Spacer()
                 
@@ -150,7 +202,17 @@ struct PortfolioView: View {
                 })
                 
             }
-            .padding(.vertical)
+//            .padding(.vertical)
+        }
+    }
+    
+    func getPortfolioItem(ticker: String) -> PortfolioItem? {
+        if let foundItem = portfolioViewModel.portfolioModel.first(where: { $0.ticker == ticker }) {
+            let newPortfolioItem = PortfolioItem(quantity: foundItem.quantity, avgCost: foundItem.avgCost, change: foundItem.change, marketValue: foundItem.marketValue, totalCost: foundItem.totalCost, name: foundItem.name, ticker: foundItem.ticker)
+            return newPortfolioItem
+        }
+        else {
+            return nil
         }
     }
 }
