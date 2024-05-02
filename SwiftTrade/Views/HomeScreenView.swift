@@ -54,7 +54,6 @@ struct FavoriteResponse: Codable, Identifiable{
 struct WalletResponse: Codable {
     let _id: String
     let amount: Float
-    let __v: Int
 }
 
 
@@ -83,6 +82,27 @@ class WalletViewModel: ObservableObject {
         }
         catch {
             print("Failed to fetch wallet data: \(error)")
+        }
+    }
+    
+    func updateWallet(updatedAmount: Float) async {
+        let myAPIService: FinnhubAPIService = FinnhubAPIService(
+            baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
+            token: ""
+        )
+        
+        do {
+            let endpoint = "/wallet"
+            
+            let updatedWallet = ["amount": updatedAmount]
+            try await myAPIService.putData(endpoint: endpoint, requestBody: updatedWallet, responseType: WalletResponse.self)
+            
+            DispatchQueue.main.async {
+                self.amount = updatedAmount
+            }
+        }
+        catch{
+            print("Failed to update wallet: \(error)")
         }
     }
 }

@@ -88,6 +88,7 @@ struct TradeSheetView: View {
             )
             
             await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
+            
         } else {
             //print("existing stock not found")
             let avgCost = purchaseCost / Float(stockCount)
@@ -102,7 +103,11 @@ struct TradeSheetView: View {
             )
             
             await portfolioModel.updateOrCreatePortfolio(item: newStock)
+            
         }
+        
+        let newAmount = walletViewModel.amount - purchaseCost
+        await walletViewModel.updateWallet(updatedAmount: newAmount)
     }
     
     func tryFailSell() -> Bool {
@@ -155,6 +160,9 @@ struct TradeSheetView: View {
                 
                 await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
             }
+            
+            let newAmount = walletViewModel.amount + Float(newQuantity) * stockDetailViewModel.stat.c
+            await walletViewModel.updateWallet(updatedAmount: newAmount)
         }
     }
     

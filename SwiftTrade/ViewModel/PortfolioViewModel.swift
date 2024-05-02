@@ -58,6 +58,7 @@ class PortfolioViewModel: ObservableObject {
                 // Update the existing item
                 if let id = foundItem?._id {
                     let endpoint = "/portfolio/\(id)"
+                    
                     updatedItem = try await myAPIService.putData(endpoint: endpoint, requestBody: item, responseType: PortfolioResponse.self)
                     
                     if let index = portfolioModel.firstIndex(where: { $0.ticker == item.ticker }) {
@@ -81,7 +82,9 @@ class PortfolioViewModel: ObservableObject {
                     self.portfolioModel.append(updatedItem)
                 }
             }
-        } catch let error as NSError {
+            
+        }
+        catch let error as NSError {
             if let responseData = (error as? DecodingError)?.failureReason?.data(using: .utf8) {
                 if let jsonString = String(data: responseData, encoding: .utf8) {
                     print("Response data: \(jsonString)")
@@ -115,5 +118,5 @@ class PortfolioViewModel: ObservableObject {
         } catch {
             print("Failed to delete portfolio item: \(error)")
         }
-    }
+    }        
 }
