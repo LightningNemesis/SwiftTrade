@@ -12,6 +12,9 @@ struct StockDetailsView: View {
     @Environment(\.presentationMode) var presentationMode
     @State var showTradeSheet: Bool = false
     @StateObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
+    @ObservedObject var portfolioViewModel: PortfolioViewModel = PortfolioViewModel()
+    @ObservedObject var walletViewModel: WalletViewModel = WalletViewModel()
+    
     let searchedStock: String
     
     var body: some View {
@@ -111,6 +114,8 @@ struct NamePriceView: View {
 
 struct PortfolioView: View {
     @ObservedObject var stockDetailViewModel: StockDetailViewModel
+    @EnvironmentObject var walletViewModel: WalletViewModel
+    @EnvironmentObject var portfolioViewModel: PortfolioViewModel  
     @Binding var showTradeSheet: Bool
     
     var body: some View {
@@ -138,7 +143,10 @@ struct PortfolioView: View {
                     
                 })
                 .sheet(isPresented: $showTradeSheet, content: {
-                    TradeSheetView(stockDetailViewModel: stockDetailViewModel)
+                    TradeSheetView()
+                        .environmentObject(stockDetailViewModel)
+                        .environmentObject(walletViewModel)
+                        .environmentObject(portfolioViewModel)
                 })
                 
             }

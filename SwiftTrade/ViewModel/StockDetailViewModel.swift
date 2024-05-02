@@ -137,8 +137,7 @@ class StockDetailViewModel: ObservableObject {
             let decoder = JSONDecoder()
             let decodedData = try decoder.decode([StockNewsModel].self, from: data)
             let validNewsItems = decodedData.filter { !$0.image.isEmpty }
-            let limitedNewsItems = Array(validNewsItems.prefix(20))
-            print("Decoded StatModel:\n\(limitedNewsItems)")
+            let limitedNewsItems = Array(validNewsItems.prefix(20))            
             DispatchQueue.main.async {
                 self.companyNews = limitedNewsItems
             }

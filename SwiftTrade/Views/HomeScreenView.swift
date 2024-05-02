@@ -33,20 +33,8 @@ struct PortfolioResponse: Codable, Identifiable {
     let avgCost: Float
     let totalCost: Float
     let change: Float
-    let currentPrice: Float
     let marketValue: Float
-    let country: String
-    let currency: String
-    let estimateCurrency: String
-    let exchange: String
-    let finnhubIndustry: String
-    let ipo: String
-    let logo: String
-    let marketCapitalization: Float
-    let phone: String
-    let shareOutstanding: Float
     let ticker: String
-    let weburl: String
     var id: String { _id }
 }
 
@@ -61,6 +49,42 @@ struct FavoriteResponse: Codable, Identifiable{
     let weburl: String
     let name: String
     var id: String { _id }
+}
+
+struct WalletResponse: Codable {
+    let _id: String
+    let amount: Float
+    let __v: Int
+}
+
+
+class WalletViewModel: ObservableObject {
+    @Published var amount: Float
+    @Published var isLoading: Bool
+    
+    init() {
+        self.amount = 0.0
+        self.isLoading = false
+    }
+    
+    func getWallet() async {
+        do {
+            let myAPIService: FinnhubAPIService = FinnhubAPIService(
+                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
+                token: ""
+            )
+            
+            let response: WalletResponse = try await myAPIService.fetchData(from: "/wallet", decodingType: WalletResponse.self)
+            DispatchQueue.main.async {
+                self.isLoading = true
+                self.amount = response.amount
+                self.isLoading = false
+            }
+        }
+        catch {
+            print("Failed to fetch wallet data: \(error)")
+        }
+    }
 }
 
 
@@ -109,35 +133,35 @@ class AutocompleteViewModel: ObservableObject {
     }
 }
 
-class PortfolioViewModel: ObservableObject {
-    @Published var portfolioModel: [PortfolioResponse]
-    @Published var isLoading: Bool
-    
-    init() {
-        self.portfolioModel = []
-        self.isLoading = false
-    }
-    
-    func getPortfolio() async {
-        do {
-            let myAPIService: FinnhubAPIService = FinnhubAPIService(
-                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
-                token: ""
-            )
-            
-            let response: [PortfolioResponse] = try await myAPIService.fetchData(from: "/portfolio", decodingType: [PortfolioResponse].self)
-            
-            DispatchQueue.main.async {
-                self.isLoading = true
-                self.portfolioModel = response
-                self.isLoading = false
-            }
-            
-        }catch {
-            print("Failed to fetch portfolio data: \(error)")
-        }
-    }
-}
+//class PortfolioViewModel: ObservableObject {
+//    @Published var portfolioModel: [PortfolioResponse]
+//    @Published var isLoading: Bool
+//    
+//    init() {
+//        self.portfolioModel = []
+//        self.isLoading = false
+//    }
+//    
+//    func getPortfolio() async {
+//        do {
+//            let myAPIService: FinnhubAPIService = FinnhubAPIService(
+//                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
+//                token: ""
+//            )
+//            
+//            let response: [PortfolioResponse] = try await myAPIService.fetchData(from: "/portfolio", decodingType: [PortfolioResponse].self)
+//            
+//            DispatchQueue.main.async {
+//                self.isLoading = true
+//                self.portfolioModel = response
+//                self.isLoading = false
+//            }
+//            
+//        }catch {
+//            print("Failed to fetch portfolio data: \(error)")
+//        }
+//    }
+//}
 
 class FavoriteViewModel: ObservableObject {
     @Published var favoriteModel: [FavoriteResponse]
@@ -173,6 +197,7 @@ struct HomeScreenView: View {
     @StateObject var autocompleteViewModel: AutocompleteViewModel = AutocompleteViewModel()
     @StateObject var portfolioViewModel: PortfolioViewModel = PortfolioViewModel()
     @StateObject var favoriteViewModel: FavoriteViewModel = FavoriteViewModel()
+    @StateObject var walletViewModel: WalletViewModel = WalletViewModel()
     
     @State var stockInput: String = ""
     @State var searchedStock: String = ""
@@ -182,20 +207,7 @@ struct HomeScreenView: View {
     @State private var debounceTimer: AnyCancellable?
     
     @State var date: String = "March 21, 2024"
-    @State var netWorth: Float = 25000.00
-    @State var cashBalance: Float = 25000.00
-    
-//    @State var portfolio: [PortfolioModel] = [
-//            PortfolioModel(ticker: "AAPL", count: 3, totalPrice: 517.74, changePrice: 0.03, changePercent: 0.01),
-//            PortfolioModel(ticker: "NVDA", count: 11, totalPrice: 10382.74, changePrice: 0.03, changePercent: 1.32)
-//        ]
-    
-//    @State var favorites: [FavoriteModel] = [
-//        FavoriteModel(ticker: "AAPL", name: "Apple Inc", currentPrice: 172.58, changePrice: 1.21, changePercent: 0.71),
-//        FavoriteModel(ticker: "QCOM", name: "Qualcomm Inc", currentPrice: 171.26, changePrice: 0.03, changePercent: 1.32)
-//    ]
-    
-   
+    @State var netWorth: Float = 25000.00    
         
     var body: some View {
         NavigationView{
@@ -229,7 +241,7 @@ struct HomeScreenView: View {
                         DateView(date: $date)
                         
                         // Portfolio, Favorites & Footer Button
-                        if portfolioViewModel.isLoading || favoriteViewModel.isLoading {
+                        if portfolioViewModel.isLoading || favoriteViewModel.isLoading || walletViewModel.isLoading {
                             ProgressView()
                         } else {
                             List{
@@ -248,7 +260,7 @@ struct HomeScreenView: View {
                                         VStack(alignment:.leading){
                                             Text("Cash Balance")
                                                 .font(.title2)
-                                            Text(String(format: "$%.2f", cashBalance))
+                                            Text(String(format: "$%.2f", walletViewModel.amount))
                                                 .font(.title2)
                                                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                                         }
@@ -258,8 +270,14 @@ struct HomeScreenView: View {
                                     
                                     ForEach(portfolioViewModel.portfolioModel) { portItem in
                                         NavigationLink {
-                                            //                                        StockDetailsView(searchedStock: "NVDA")
-                                            TradeSheetView()
+                                            StockDetailsView(
+                                                portfolioViewModel: portfolioViewModel,
+                                                walletViewModel: walletViewModel,
+                                                searchedStock: portItem.ticker
+                                            )
+                                            .environmentObject(portfolioViewModel)
+                                            .environmentObject(walletViewModel)
+                                            .environmentObject(favoriteViewModel)
                                         } label: {
                                             HStack{
                                                 VStack(alignment: .leading){
@@ -287,8 +305,14 @@ struct HomeScreenView: View {
                                 Section(header: Text("Favourites")) {
                                     ForEach(favoriteViewModel.favoriteModel){ favItem in
                                         NavigationLink {
-                                            //                                        StockDetailsView(searchedStock: "NVDA")
-                                            TradeSheetView()
+                                            StockDetailsView(
+                                                portfolioViewModel: portfolioViewModel,
+                                                walletViewModel: walletViewModel,
+                                                searchedStock: favItem.ticker
+                                            )
+                                            .environmentObject(portfolioViewModel)
+                                            .environmentObject(walletViewModel)
+                                            .environmentObject(favoriteViewModel)
                                         } label: {
                                             HStack{
                                                 VStack(alignment: .leading){
@@ -332,7 +356,11 @@ struct HomeScreenView: View {
                         List{
                             ForEach(autocompleteViewModel.stockAutocomplete, id: \.symbol) { item in
                                 NavigationLink(
-                                    destination: StockDetailsView(searchedStock: item.symbol)
+                                    destination: 
+                                        StockDetailsView(searchedStock: item.symbol)                                        .environmentObject(portfolioViewModel)
+                                        .environmentObject(walletViewModel)
+                                        .environmentObject(favoriteViewModel)
+                                    
                                 ) {
                                     VStack(alignment: .leading){
                                         Text(item.symbol)
@@ -354,6 +382,7 @@ struct HomeScreenView: View {
                     Task {
                         await portfolioViewModel.getPortfolio()
                         await favoriteViewModel.getWatchlist()
+                        await walletViewModel.getWallet()
                     }
                 }
                 .navigationTitle("Stocks")

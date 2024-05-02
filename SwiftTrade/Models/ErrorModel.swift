@@ -11,4 +11,5 @@ enum StockError: Error {
     case invalidURL
     case invalidResponse
     case invalidData
+    case encodingFailed
 }

@@ -7,51 +7,23 @@
 
 import SwiftUI
 
-struct WalletResponse: Codable {
-    let _id: String
-    let amount: Float
-    let __v: Int
+
+struct PortfolioItem: Codable {
+    let quantity: Int
+    let avgCost: Float
+    let change: Float
+    let marketValue: Float
+    let totalCost: Float
+    let name: String
+    let ticker: String
 }
-
-
-class WalletViewModel: ObservableObject {
-    @Published var amount: Float
-    @Published var isLoading: Bool
-    
-    init() {
-        self.amount = 0.0
-        self.isLoading = false
-    }
-    
-    func getWallet() async {
-        do {
-            let myAPIService: FinnhubAPIService = FinnhubAPIService(
-                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
-                token: ""
-            )
-            
-            let response: WalletResponse = try await myAPIService.fetchData(from: "/wallet", decodingType: WalletResponse.self)
-            DispatchQueue.main.async {
-                self.isLoading = true
-                self.amount = response.amount
-                self.isLoading = false
-            }
-        }
-        catch {
-            print("Failed to fetch wallet data: \(error)")
-        }
-    }
-    
-    
-}
-
-
 
 struct TradeSheetView: View {
     @Environment(\.presentationMode) var presentationMode
-    @ObservedObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
-    @StateObject var walletModel: WalletViewModel = WalletViewModel()
-    @ObservedObject var portfolioModel: PortfolioViewModel = PortfolioViewModel()
+    
+    @EnvironmentObject var stockDetailViewModel: StockDetailViewModel
+    @EnvironmentObject var portfolioModel: PortfolioViewModel
+    @EnvironmentObject var walletViewModel: WalletViewModel
     
     @State private var totalPrice: Float = 0.0
     
@@ -81,17 +53,55 @@ struct TradeSheetView: View {
             print("Enter a value greater than 0")
             return false
         }
-        if totalPrice > walletModel.amount {
-            print("Can't buy more than your wallet")
-            return false
-        }
+//        if totalPrice > walletModel.amount {
+//            print("Can't buy more than your wallet")
+//            return false
+//        }
         return true
     }
     
-    func tryBuy(){
-        if tryFailBuy() {
-           // make api call to buy here
+    func tryBuy() async {
+        
+//        print("Existing portfolio:\n\(portfolioModel.portfolioModel)")
+//        print("Ticker buying:\n\(stockDetailViewModel.stockOverview.ticker)")
+        
+        let purchaseCost = Float(stockCount) * stockDetailViewModel.stat.c;
+        
+        if let existingStockIndex = portfolioModel.portfolioModel.firstIndex(where: { $0.ticker ==  stockDetailViewModel.stockOverview.ticker}){
+            print("existing stock:\n\(portfolioModel.portfolioModel[existingStockIndex])")
             
+            let existingStock = portfolioModel.portfolioModel[existingStockIndex]
+            let newQuantity = existingStock.quantity + stockCount
+            let newAvgCost = (existingStock.totalCost + purchaseCost) / Float(newQuantity)
+            let newTotalCost = existingStock.totalCost + purchaseCost
+            let change = newAvgCost - stockDetailViewModel.stat.c
+            let marketValue = Float(newQuantity) * stockDetailViewModel.stat.c
+            
+            let updatedStock = PortfolioItem(
+                quantity: newQuantity,
+                avgCost: newAvgCost,
+                change: change,
+                marketValue: marketValue,
+                totalCost: newTotalCost,
+                name: existingStock.name,
+                ticker: existingStock.ticker
+            )
+            
+            await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
+        } else {
+            //print("existing stock not found")
+            let avgCost = purchaseCost / Float(stockCount)
+            let newStock = PortfolioItem(
+                quantity: stockCount,
+                avgCost: avgCost,
+                change: avgCost - stockDetailViewModel.stat.c,
+                marketValue: Float(stockCount) * stockDetailViewModel.stat.c,
+                totalCost: purchaseCost,
+                name: stockDetailViewModel.stockOverview.name,
+                ticker: stockDetailViewModel.stockOverview.ticker
+            )
+            
+            await portfolioModel.updateOrCreatePortfolio(item: newStock)
         }
     }
     
@@ -102,9 +112,49 @@ struct TradeSheetView: View {
         return true
     }
     
-    func trySell() {
-        if tryFailSell() {
-            // make api call to sell here
+    func trySell() async {
+        //        print("Existing portfolio:\n\(portfolioModel.portfolioModel)")
+        //        print("Ticker buying:\n\(stockDetailViewModel.stockOverview.ticker)")
+        
+        if let existingStockIndex = portfolioModel.portfolioModel.firstIndex(
+            where: { $0.ticker ==  stockDetailViewModel.stockOverview.ticker}){
+            
+            let existingStock = portfolioModel.portfolioModel[existingStockIndex]
+            let newQuantity = existingStock.quantity - stockCount
+            
+            if newQuantity < 0 {
+                print("Selling more than you have")
+                return
+            }
+            else if newQuantity == 0 {
+                let updatedStock = PortfolioItem(
+                    quantity: existingStock.quantity,
+                    avgCost: existingStock.avgCost,
+                    change: existingStock.change,
+                    marketValue: existingStock.marketValue,
+                    totalCost: existingStock.totalCost,
+                    name: existingStock.name,
+                    ticker: existingStock.ticker
+                )
+                
+                await portfolioModel.deletePortfolio(item: updatedStock)
+            } else {
+                let newTotalCost = Float(newQuantity) * existingStock.avgCost
+                let newMarketValue = Float(newQuantity) * stockDetailViewModel.stat.c
+                let newChange = existingStock.avgCost - stockDetailViewModel.stat.c
+                let newAvgCost = newTotalCost / Float(newQuantity)
+                
+                let updatedStock = PortfolioItem(
+                    quantity: newQuantity,
+                    avgCost: newAvgCost,
+                    change: newChange,
+                    marketValue: newMarketValue,
+                    totalCost: newTotalCost, name: stockDetailViewModel.stockOverview.name,
+                    ticker: stockDetailViewModel.stockOverview.ticker
+                )
+                
+                await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
+            }
         }
     }
     
@@ -121,9 +171,7 @@ struct TradeSheetView: View {
             })
             .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
             
-            if walletModel.isLoading, portfolioModel.isLoading {
-                ProgressView()
-            } else {
+            
                 Text("Trade Apple Inc shares")
                     .font(.headline)
                 
@@ -152,17 +200,17 @@ struct TradeSheetView: View {
                 
                 Spacer()
                 
-                Text(String(format: "$%.2f available to buy AAPL", walletModel.amount))
+                Text(String(format: "$%.2f available to buy AAPL", walletViewModel.amount))
                     .font(.caption)
                     .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                     .foregroundColor(.gray)
             }
-            
-            
-            
+                        
             HStack{
                 Button {
-                    
+                    Task {
+                        await tryBuy()
+                    }
                 } label: {
                     Text("Buy")
                         .frame(width: 150, height: 50)
@@ -173,7 +221,9 @@ struct TradeSheetView: View {
                 }
                 
                 Button {
-                    
+                    Task {
+                      await trySell()
+                    }
                 } label: {
                     Text("Sell")
                         .frame(width: 150, height: 50)
@@ -184,13 +234,7 @@ struct TradeSheetView: View {
                 }
             }
         }
-        .onAppear {
-            Task {
-                await portfolioModel.getPortfolio()
-                await walletModel.getWallet()
-            }
-        }
-    }
+    
 }
 #Preview {
     TradeSheetView()

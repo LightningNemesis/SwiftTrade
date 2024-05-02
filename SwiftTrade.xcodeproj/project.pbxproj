@@ -20,6 +20,7 @@
 		EF9F6E1C2BDF6747007C5977 /* NewsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E1B2BDF6747007C5977 /* NewsSheetView.swift */; };
 		EF9F6E1E2BDF6DAF007C5977 /* StockNewsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E1D2BDF6DAF007C5977 /* StockNewsModel.swift */; };
 		EF9F6E4E2BE3259D007C5977 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E4D2BE3259D007C5977 /* APIService.swift */; };
+		EF9F6E522BE395B0007C5977 /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E512BE395B0007C5977 /* PortfolioViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		EF9F6E1B2BDF6747007C5977 /* NewsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsSheetView.swift; sourceTree = "<group>"; };
 		EF9F6E1D2BDF6DAF007C5977 /* StockNewsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockNewsModel.swift; sourceTree = "<group>"; };
 		EF9F6E4D2BE3259D007C5977 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		EF9F6E512BE395B0007C5977 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				EF9F6E142BDF274D007C5977 /* StockDetailViewModel.swift */,
+				EF9F6E512BE395B0007C5977 /* PortfolioViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -207,6 +210,7 @@
 				EF9F6E1C2BDF6747007C5977 /* NewsSheetView.swift in Sources */,
 				EF9F6E122BDF2707007C5977 /* StatModel.swift in Sources */,
 				EF9F6E4E2BE3259D007C5977 /* APIService.swift in Sources */,
+				EF9F6E522BE395B0007C5977 /* PortfolioViewModel.swift in Sources */,
 				EF9F6E1A2BDF6712007C5977 /* TradeSheetView.swift in Sources */,
 				EF9F6E0B2BDDE9D6007C5977 /* StockDetailsView.swift in Sources */,
 				EF00E6BF2BCF536200E19735 /* SwiftTradeApp.swift in Sources */,

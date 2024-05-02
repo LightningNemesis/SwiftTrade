@@ -44,7 +44,7 @@ class FinnhubAPIService {
             throw StockError.invalidURL
         }
         
-        print("URL with Query Param: \(urlString)")
+//        print("URL with Query Param: \(urlString)")
         
         // Prepare the URLRequest object
         var request = URLRequest(url: url)
@@ -58,9 +58,9 @@ class FinnhubAPIService {
             throw StockError.invalidResponse
         }
         
-        if let jsonString = String(data: data, encoding: .utf8) {
-                print("Raw JSON data: \(jsonString)")
-            }
+//        if let jsonString = String(data: data, encoding: .utf8) {
+//                print("Raw JSON data: \(jsonString)")
+//            }
         
         // Decode the data
         do {
@@ -92,4 +92,140 @@ class FinnhubAPIService {
             throw StockError.invalidData
         }
     }
+    
+    
+    // Generic POST request function
+    func postData<T: Decodable, U: Encodable>(endpoint: String, requestBody: U, responseType: T.Type) async throws -> T {
+        var urlString = "\(baseURL)\(endpoint)"
+        if !token.isEmpty {
+            urlString += "?token=\(token)"
+        }
+        
+        guard let url = URL(string: urlString) else {
+            throw StockError.invalidURL
+        }
+        
+        print("POST URL: \(urlString)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            request.httpBody = try JSONEncoder().encode(requestBody)
+        } catch {
+            print("Error encoding request body: \(error.localizedDescription)")
+            throw StockError.encodingFailed
+        }
+        
+        // Perform the network request
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, 200...299 ~= httpResponse.statusCode else {
+            print (response)
+            throw StockError.invalidResponse
+        }
+        
+        // Optional: Print raw JSON response data for debugging
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("Raw JSON response data: \(jsonString)")
+        }
+        
+        // Decode the response
+        do {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            print("Decoding failed with error: \(error.localizedDescription)")
+            throw StockError.invalidData
+        }
+    }
+    
+    func putData<T: Decodable, U: Encodable>(endpoint: String, requestBody: U, responseType: T.Type) async throws -> T {
+        var urlString = "\(baseURL)\(endpoint)"
+        if !token.isEmpty {
+            urlString += "?token=\(token)"
+        }
+        
+        guard let url = URL(string: urlString) else {
+            throw StockError.invalidURL
+        }
+        
+        print("PUT URL: \(urlString)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            request.httpBody = try JSONEncoder().encode(requestBody)            
+        } catch {
+            print("Error encoding request body: \(error.localizedDescription)")
+            throw StockError.encodingFailed
+        }
+        
+        // Perform the network request
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, 200...299 ~= httpResponse.statusCode else {
+            throw StockError.invalidResponse
+        }
+        
+        // Optional: Print raw JSON response data for debugging
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("Raw JSON response data: \(jsonString)")
+        }
+        
+        // Decode the response
+        do {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            print("Decoding failed with error: \(error)")
+            throw StockError.invalidData
+        }
+    }
+    
+    func deleteData<T: Decodable>(endpoint: String, responseType: T.Type) async throws {
+        var urlString = "\(baseURL)\(endpoint)"
+        if !token.isEmpty {
+            urlString += "?token=\(token)"
+        }
+        
+        guard let url = URL(string: urlString) else {
+            throw StockError.invalidURL
+        }
+        
+        print("DELETE URL: \(urlString)")
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Perform the network request
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, 200...299 ~= httpResponse.statusCode else {
+            throw StockError.invalidResponse
+        }
+        
+        // Optional: Print raw JSON response data for debugging
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("Raw JSON response data: \(jsonString)")
+        }
+        
+//        // Decode the response
+//        do {
+//            let decoder = JSONDecoder()
+//            decoder.keyDecodingStrategy = .convertFromSnakeCase
+//            return try decoder.decode(T.self, from: data)
+//        } catch {
+//            print("Decoding failed with error: \(error)")
+//            throw StockError.invalidData
+//        }
+    }
+
+
 }
