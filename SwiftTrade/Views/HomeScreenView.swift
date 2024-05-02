@@ -17,14 +17,14 @@ import Combine
 //    let changePercent: Float
 //}
 
-struct FavoriteModel: Identifiable {
-    let id: String = UUID().uuidString
-    let ticker: String
-    let name: String
-    let currentPrice: Float
-    let changePrice: Float
-    let changePercent: Float
-}
+//struct FavoriteModel: Identifiable {
+//    let id: String = UUID().uuidString
+//    let ticker: String
+//    let name: String
+//    let currentPrice: Float
+//    let changePrice: Float
+//    let changePercent: Float
+//}
 
 struct PortfolioResponse: Codable, Identifiable {
     let _id: String
@@ -44,7 +44,7 @@ struct FavoriteResponse: Codable, Identifiable{
     let d: Float
     let dp: Float
     let ipo: String
-    let shareOutstanding: Float
+//    let shareOutstanding: Float
     let ticker: String
     let weburl: String
     let name: String
@@ -208,7 +208,57 @@ class FavoriteViewModel: ObservableObject {
             }
             
         }catch {
-            print("Failed to fetch portfolio data: \(error)")
+            print("Failed to fetch watchlist data: \(error)")
+        }
+    }
+    
+    func addWatchlist(item: FavoriteItem) async {
+        do {
+            let myAPIService: FinnhubAPIService = FinnhubAPIService(
+                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
+                token: ""
+            )
+            
+            let endpoint = "/watchlist"
+            
+            // Serialize item to JSON for logging
+            let jsonData = try JSONEncoder().encode(item)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Creating new item: \(jsonString)")
+            }
+            
+            let updatedItem = try await myAPIService.postData(endpoint: endpoint, requestBody: item, responseType: FavoriteResponse.self)
+            DispatchQueue.main.async {
+                self.favoriteModel.append(updatedItem)
+            }
+            
+        } catch {
+            print("Failed to update watchlist data: \(error)")
+        }
+    }
+    
+    func removeWatchlist(item: FavoriteResponse) async {
+        do {
+            let myAPIService: FinnhubAPIService = FinnhubAPIService(
+                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
+                token: ""
+            )
+            
+            let foundItem = favoriteModel.first(where: { $0.ticker == item.ticker })
+            
+            // Delete the existing item
+            if let id = foundItem?._id {
+                let endpoint = "/watchlist/\(id)"
+                try await myAPIService.deleteData(endpoint: endpoint, responseType: PortfolioResponse.self)
+                
+                if let index = favoriteModel.firstIndex(where: { $0.ticker == item.ticker }) {
+                    DispatchQueue.main.async {
+                        self.favoriteModel.remove(at: index)
+                    }
+                }
+            }
+        } catch {
+            print("Failed to update watchlist data: \(error)")
         }
     }
 }
@@ -377,7 +427,8 @@ struct HomeScreenView: View {
                             ForEach(autocompleteViewModel.stockAutocomplete, id: \.symbol) { item in
                                 NavigationLink(
                                     destination: 
-                                        StockDetailsView(searchedStock: item.symbol)                                        .environmentObject(portfolioViewModel)
+                                        StockDetailsView(searchedStock: item.symbol)                                        
+                                        .environmentObject(portfolioViewModel)
                                         .environmentObject(walletViewModel)
                                         .environmentObject(favoriteViewModel)
                                     
@@ -414,7 +465,14 @@ struct HomeScreenView: View {
     }
     
     func delete(indexSet: IndexSet) {
-        favoriteViewModel.favoriteModel.remove(atOffsets: indexSet)
+        guard let index = indexSet.first else {
+                return
+            }
+        
+        Task {
+            await favoriteViewModel.removeWatchlist(item: favoriteViewModel.favoriteModel[index])
+            favoriteViewModel.favoriteModel.remove(atOffsets: indexSet)
+        }
     }
     
     func move(indices: IndexSet, newOffset: Int) {

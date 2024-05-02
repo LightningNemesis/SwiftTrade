@@ -7,6 +7,16 @@
 
 import SwiftUI
 
+struct FavoriteItem: Codable {
+    let c: Float
+    let d: Float
+    let dp: Float
+    let ipo: String
+    let ticker: String
+    let weburl: String
+    let name: String
+}
+
 struct StockDetailsView: View {
     
     @Environment(\.presentationMode) var presentationMode
@@ -14,12 +24,20 @@ struct StockDetailsView: View {
     @StateObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
     @ObservedObject var portfolioViewModel: PortfolioViewModel = PortfolioViewModel()
     @ObservedObject var walletViewModel: WalletViewModel = WalletViewModel()
+    @ObservedObject var favoriteViewModel: FavoriteViewModel = FavoriteViewModel()
+    @StateObject var insiderViewModel: InsiderViewModel = InsiderViewModel()
     
     let searchedStock: String
     
+    func addToFavorite() async {
+        let favItem: FavoriteItem = FavoriteItem(c: stockDetailViewModel.stat.c, d: stockDetailViewModel.stat.d, dp: stockDetailViewModel.stat.dp, ipo: stockDetailViewModel.stockOverview.ipo, ticker: stockDetailViewModel.stockOverview.ticker, weburl: stockDetailViewModel.stockOverview.weburl, name: stockDetailViewModel.stockOverview.name)
+        
+        await favoriteViewModel.addWatchlist(item: favItem)
+    }
+    
     var body: some View {
         ScrollView (showsIndicators:false){
-            if stockDetailViewModel.isLoading, portfolioViewModel.isLoading {
+            if stockDetailViewModel.isLoading || portfolioViewModel.isLoading || insiderViewModel.isLoading {
                 ProgressView()
             }else{
                 // Name, Price and Change in Price
@@ -42,12 +60,20 @@ struct StockDetailsView: View {
                     Text("Insights")
                         .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
                         .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
+                       
+                    if !insiderViewModel.insiderModel.isEmpty {
+                        InsiderSentimentsView(insiderViewModel: insiderViewModel)
+                    }
                     
-                    // Highcharts comes here
                 }
                 
                 // News subview
-                NewsView(stockDetailViewModel: stockDetailViewModel)
+                VStack{
+                    Text("News")
+                        .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
+                        .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
+                    NewsView(stockDetailViewModel: stockDetailViewModel)
+                }
             }
         }
         .padding(.horizontal)
@@ -64,13 +90,26 @@ struct StockDetailsView: View {
                         }
                     },
             trailing:
-                Image(systemName: "plus.circle")
-                .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                Button(action: {
+                    Task{
+                        await addToFavorite()
+                    }
+                    
+                }, label: {
+                    Image(systemName: "plus.circle")
+                    .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                })
+                
         )
         .navigationBarBackButtonHidden(true)
         .onAppear {
             Task {
                 await stockDetailViewModel.loadData(stock: searchedStock)
+                do {
+                    try await insiderViewModel.getSentiment(stock: searchedStock)
+                } catch {
+                    print("Failed to get sentiment: \(error)")
+                }
             }
         }
     }
@@ -314,6 +353,103 @@ struct AboutView: View {
             }
             .padding(.vertical, 5)
         }
+    }
+}
+
+struct InsiderSentimentsView: View {
+    @ObservedObject var insiderViewModel: InsiderViewModel = InsiderViewModel()
+    
+    @State private var totalChange: Int = 0
+    @State private var totalMSPR: Float = 0.0
+    @State private var posMSPR: Float = 0.0
+    @State private var negMSPR: Float = 0.0
+    @State private var posChange: Int = 0
+    @State private var negChange: Int = 0
+    
+    func transformData() {
+        print(insiderViewModel.insiderModel)
+        
+        for element in insiderViewModel.insiderModel {
+            if element.mspr > 0 {
+                posMSPR += element.mspr
+            }
+            
+            if element.change > 0 {
+                posChange += element.change
+            }
+            
+            if element.mspr < 0 {
+                negMSPR += element.mspr
+            }
+            
+            if element.change < 0 {
+                negChange += element.change
+            }
+            
+            totalMSPR += element.mspr
+            totalChange += element.change
+        }
+    }
+    
+    var body: some View {
+        VStack{
+            Text("Insider Sentiments")
+                .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
+                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .center)
+            
+            HStack{
+                VStack(alignment: .leading){
+                    Text("Apple Inc")
+                    Divider()
+                    Text("Total")
+                    Divider()
+                    Text("Postive")
+                    Divider()
+                    Text("Negative")
+                    Divider()
+                }
+                .font(.subheadline)
+                .fontWeight(.bold)
+                
+                Spacer()
+                
+                VStack(alignment: .leading){
+                    Text("MSPR")
+                        .fontWeight(.bold)
+                    Divider()
+                    Text(String(format: "%.2f", totalMSPR))
+                    Divider()
+                    Text(String(format: "%.2f", posMSPR))
+                    Divider()
+                    Text(String(format: "%.2f", negMSPR))
+                    Divider()
+                }
+                .font(.subheadline)
+                
+                Spacer()
+                
+                VStack(alignment: .leading){
+                    Text("Change")
+                        .fontWeight(.bold)
+                    Divider()
+                    Text(String(format: "%d", totalChange))
+                    Divider()
+                    Text(String(format: "%d", posChange))
+                    Divider()
+                    Text(String(format: "%d", negChange))
+                    Divider()
+                }
+                .font(.subheadline)
+
+            }
+            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
+            .padding(.vertical)
+        }
+        .onAppear(perform: {
+            transformData()
+        })
+        .padding(.vertical)
+        
     }
 }
 
