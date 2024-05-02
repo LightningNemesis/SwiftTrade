@@ -27,6 +27,8 @@ struct StockDetailsView: View {
     @ObservedObject var favoriteViewModel: FavoriteViewModel = FavoriteViewModel()
     @StateObject var insiderViewModel: InsiderViewModel = InsiderViewModel()
     
+    @StateObject var highChartsViewModel: HighChartsViewModel = HighChartsViewModel()
+    
     let searchedStock: String
     
     func addToFavorite() async {
@@ -42,6 +44,37 @@ struct StockDetailsView: View {
             }else{
                 // Name, Price and Change in Price
                 NamePriceView(stockDetailViewModel: stockDetailViewModel)
+                
+                
+                TabView {
+                    if !highChartsViewModel.isLoading {
+                        HighChartsHourlyView(hourlyData: highChartsViewModel.hourlyModel!, ticker: stockDetailViewModel.stockOverview.ticker)
+                            .frame(height: 430, alignment: .bottom)
+                            .tabItem {
+                                Image(systemName: "chart.xyaxis.line")
+                                Text("Hourly")
+                            }
+                        
+                        HighChartsHistoricalView(ohlcData: highChartsViewModel.ohlcModel!, volumeData: highChartsViewModel.volumeModel!, ticker: stockDetailViewModel.stockOverview.ticker)
+                            .frame(height: 430, alignment: .bottom)
+                            .tabItem {
+                                Image(systemName: "clock.fill")
+                                Text("Historical")
+                            }
+                    }
+                    
+                }
+                .frame(height: 470)
+                .onAppear() {
+                    UITabBar.appearance().barTintColor = .white
+                    Task {
+                        await highChartsViewModel.getHourlyTimeseriesData(ticker: stockDetailViewModel.stockOverview.ticker)
+                        await highChartsViewModel.getHistoricalTimeseriesData(ticker: stockDetailViewModel.stockOverview.ticker)
+                    }
+                }
+                Divider().offset(y: -75)
+                
+
                 
                 // Portfolio subview
                 PortfolioView(
@@ -64,8 +97,26 @@ struct StockDetailsView: View {
                     if !insiderViewModel.insiderModel.isEmpty {
                         InsiderSentimentsView(insiderViewModel: insiderViewModel)
                     }
-                    
                 }
+                
+                VStack{
+                    if let recommendationData = highChartsViewModel.recommendationModel {
+                        HighChartsRecommendationView(recommendationData: recommendationData)
+                            .frame(height: 400)
+                    }
+                    
+                    if let earningsData = highChartsViewModel.earningsModel {
+                        HCEarningsView(earningData: earningsData)
+                            .frame(height: 400)
+                    }
+                }
+                .onAppear(perform: {
+                    Task{
+                        await highChartsViewModel.getRecommendationsData(ticker: stockDetailViewModel.stockOverview.ticker)
+                        await highChartsViewModel.getEarningsData(ticker: stockDetailViewModel.stockOverview.ticker)
+                    }
+                })
+                
                 
                 // News subview
                 VStack{

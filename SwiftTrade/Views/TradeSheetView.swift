@@ -27,6 +27,12 @@ struct TradeSheetView: View {
     
     @State private var totalPrice: Float = 0.0
     
+    @State var successfulTransaction: Bool = false
+    @State var message: String = ""
+    
+    @State var isShowingPop: Bool = false
+    @State var toastMessage: String = ""
+    
     @State var stockCount: Int = 0
     
     // Computed property to handle the conversion between Int and String for TextField
@@ -108,6 +114,9 @@ struct TradeSheetView: View {
         
         let newAmount = walletViewModel.amount - purchaseCost
         await walletViewModel.updateWallet(updatedAmount: newAmount)
+        
+        message = "You have successfully bought \(stockCount) shares of \(stockDetailViewModel.stockOverview.ticker)"
+        successfulTransaction = true
     }
     
     func tryFailSell() -> Bool {
@@ -163,85 +172,108 @@ struct TradeSheetView: View {
             
             let newAmount = walletViewModel.amount + Float(newQuantity) * stockDetailViewModel.stat.c
             await walletViewModel.updateWallet(updatedAmount: newAmount)
+            
+            message = "You have successfully sold \(stockCount) shares of \(stockDetailViewModel.stockOverview.ticker)"
+            successfulTransaction = true
         }
     }
     
     
     var body: some View {
-        VStack{
-            Button(action: {
-                presentationMode.wrappedValue.dismiss()
-            }, label: {
-                Image(systemName: "xmark")
-                    .foregroundColor(.black)
-                    .font(.title)
-                    .padding(20)
-            })
-            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
+        if(successfulTransaction) {
+            SuccessView(message: $message, successfulTransaction: $successfulTransaction)
+                .transition(.asymmetric(insertion: .move(edge: .bottom), removal: .opacity))
+                .animation(.easeInOut(duration: 2), value: successfulTransaction)
+        }
+        else {
             
-            
-                Text("Trade Apple Inc shares")
-                    .font(.headline)
-                
-                Spacer()
-                
-                HStack{
-                    TextField("0", text: stockCountString)
-                        .keyboardType(.numberPad)
-                        .onChange(of: stockCount, perform: { _ in
-                            calcPrice()
-                        })
-                        .font(.largeTitle)
-                        .foregroundColor(.gray)
+                VStack{
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }, label: {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.black)
+                            .font(.title)
+                            .padding(20)
+                    })
+                    .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
+                    
+                    
+                    Text("Trade \(stockDetailViewModel.stockOverview.name) shares")
+                        .font(.headline)
                     
                     Spacer()
-                    Text("Share")
-                        .font(.largeTitle)
-                }
-                .padding(.horizontal)
-                
-                Text(String(format: "x $%.2f/share = %.2f", stockDetailViewModel.stat.c, totalPrice))
-                    .font(.headline)
-                    .foregroundColor(.gray)
-                    .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
-                    .padding()
-                
-                Spacer()
-                
-                Text(String(format: "$%.2f available to buy AAPL", walletViewModel.amount))
-                    .font(.caption)
-                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                    .foregroundColor(.gray)
-            }
+                    
+                    HStack{
+                        TextField("0", text: stockCountString)
+                            .keyboardType(.numberPad)
+                            .onChange(of: stockCount, perform: { _ in
+                                calcPrice()
+                            })
+                            .font(.largeTitle)
+                            .foregroundColor(.gray)
                         
-            HStack{
-                Button {
-                    Task {
-                        await tryBuy()
+                        Spacer()
+                        Text("Share")
+                            .font(.largeTitle)
                     }
-                } label: {
-                    Text("Buy")
-                        .frame(width: 150, height: 50)
-                        .background(.green)
-                        .cornerRadius(30)
-                        .foregroundColor(.white)
+                    .padding(.horizontal)
+                    
+                    Text(String(format: "x $%.2f/share = %.2f", stockDetailViewModel.stat.c, totalPrice))
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .trailing)
                         .padding()
+                    
+                    Spacer()
+                    
+                    Text(String(format: "$%.2f available to buy \(stockDetailViewModel.stockOverview.ticker)", walletViewModel.amount))
+                        .font(.caption)
+                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                        .foregroundColor(.gray)
                 }
                 
-                Button {
-                    Task {
-                      await trySell()
+                HStack{
+                    Button {
+                        Task {
+//                            await tryBuy()
+//                            withAnimation {
+//                                successfulTransaction = true
+//                            }
+                            toastMessage = "Something"
+                            isShowingPop = true
+                        }
+                    } label: {
+                        Text("Buy")
+                            .frame(width: 150, height: 50)
+                            .background(.green)
+                            .cornerRadius(30)
+                            .foregroundColor(.white)
+                            .padding()
                     }
-                } label: {
-                    Text("Sell")
-                        .frame(width: 150, height: 50)
-                        .background(.green)
-                        .cornerRadius(30)
-                        .foregroundColor(.white)
-                        .padding()
+                    
+                    
+                    
+                    Button {
+                        Task {
+                            await trySell()
+                            withAnimation {
+                                successfulTransaction = true
+                            }
+                        }
+                    } label: {
+                        Text("Sell")
+                            .frame(width: 150, height: 50)
+                            .background(.green)
+                            .cornerRadius(30)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
                 }
+                .toast(isShowing: $isShowingPop, text: Text("Cannot buy non-positive shares"))
             }
-        }
+    }
+            
     
 }
 #Preview {
@@ -250,6 +282,8 @@ struct TradeSheetView: View {
 
 struct SuccessView: View {
     @Environment(\.presentationMode) var presentationMode
+    @Binding var message: String
+    @Binding var successfulTransaction: Bool
     
     var body: some View {
         ZStack{
@@ -263,7 +297,7 @@ struct SuccessView: View {
                     .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                     .foregroundColor(.white)
 
-                Text("You have successfully bought 3 shares of AAPL")
+                Text(message)
                     .font(.subheadline)
                     .foregroundColor(.white)
                     .padding()
@@ -282,5 +316,38 @@ struct SuccessView: View {
                     }
             }
         }
+    }
+}
+
+struct Toast: ViewModifier {
+    @Binding var isShowing: Bool
+    var text: Text
+
+    func body(content: Content) -> some View {
+        ZStack (alignment: .center){
+            content
+            if isShowing {
+                text
+                    .padding()
+                    .padding(.vertical)
+                    .background(.gray)
+                    .foregroundColor(Color.white)
+                    .cornerRadius(20)
+                    
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation {
+                                self.isShowing = false
+                            }
+                        }
+                    }
+            }
+        }
+    }
+}
+
+extension View {
+    func toast(isShowing: Binding<Bool>, text: Text) -> some View {
+        self.modifier(Toast(isShowing: isShowing, text: text))
     }
 }

@@ -22,6 +22,12 @@
 		EF9F6E4E2BE3259D007C5977 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E4D2BE3259D007C5977 /* APIService.swift */; };
 		EF9F6E522BE395B0007C5977 /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E512BE395B0007C5977 /* PortfolioViewModel.swift */; };
 		EFCB97422BE3D9000002893E /* InsiderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB97412BE3D9000002893E /* InsiderViewModel.swift */; };
+		EFCB97442BE3F2220002893E /* AllHighChartsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB97432BE3F2220002893E /* AllHighChartsModel.swift */; };
+		EFCB97462BE3F2D90002893E /* HighChartsEarningsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB97452BE3F2D90002893E /* HighChartsEarningsView.swift */; };
+		EFCB97482BE3F4DC0002893E /* HighChartsHourlyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB97472BE3F4DC0002893E /* HighChartsHourlyView.swift */; };
+		EFCB974A2BE3F5640002893E /* DummyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB97492BE3F5640002893E /* DummyData.swift */; };
+		EFCB974C2BE3F5940002893E /* HighChartsHistoricalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB974B2BE3F5940002893E /* HighChartsHistoricalView.swift */; };
+		EFCB974E2BE3F5DD0002893E /* HighChartsRecommendationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFCB974D2BE3F5DD0002893E /* HighChartsRecommendationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +47,12 @@
 		EF9F6E4D2BE3259D007C5977 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		EF9F6E512BE395B0007C5977 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
 		EFCB97412BE3D9000002893E /* InsiderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsiderViewModel.swift; sourceTree = "<group>"; };
+		EFCB97432BE3F2220002893E /* AllHighChartsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllHighChartsModel.swift; sourceTree = "<group>"; };
+		EFCB97452BE3F2D90002893E /* HighChartsEarningsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighChartsEarningsView.swift; sourceTree = "<group>"; };
+		EFCB97472BE3F4DC0002893E /* HighChartsHourlyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighChartsHourlyView.swift; sourceTree = "<group>"; };
+		EFCB97492BE3F5640002893E /* DummyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyData.swift; sourceTree = "<group>"; };
+		EFCB974B2BE3F5940002893E /* HighChartsHistoricalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighChartsHistoricalView.swift; sourceTree = "<group>"; };
+		EFCB974D2BE3F5DD0002893E /* HighChartsRecommendationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighChartsRecommendationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				EF9F6E0F2BDF26E5007C5977 /* StockOverviewModel.swift */,
+				EFCB97492BE3F5640002893E /* DummyData.swift */,
 				EF9F6E112BDF2707007C5977 /* StatModel.swift */,
 				EF9F6E162BDF2771007C5977 /* ErrorModel.swift */,
 				EF9F6E1D2BDF6DAF007C5977 /* StockNewsModel.swift */,
@@ -109,6 +122,7 @@
 				EF9F6E142BDF274D007C5977 /* StockDetailViewModel.swift */,
 				EF9F6E512BE395B0007C5977 /* PortfolioViewModel.swift */,
 				EFCB97412BE3D9000002893E /* InsiderViewModel.swift */,
+				EFCB97432BE3F2220002893E /* AllHighChartsModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -120,6 +134,10 @@
 				EF9F6E0A2BDDE9D6007C5977 /* StockDetailsView.swift */,
 				EF9F6E192BDF6712007C5977 /* TradeSheetView.swift */,
 				EF9F6E1B2BDF6747007C5977 /* NewsSheetView.swift */,
+				EFCB97452BE3F2D90002893E /* HighChartsEarningsView.swift */,
+				EFCB97472BE3F4DC0002893E /* HighChartsHourlyView.swift */,
+				EFCB974B2BE3F5940002893E /* HighChartsHistoricalView.swift */,
+				EFCB974D2BE3F5DD0002893E /* HighChartsRecommendationView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -208,6 +226,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EFCB97442BE3F2220002893E /* AllHighChartsModel.swift in Sources */,
+				EFCB974C2BE3F5940002893E /* HighChartsHistoricalView.swift in Sources */,
 				EF9F6E152BDF274D007C5977 /* StockDetailViewModel.swift in Sources */,
 				EF9F6E092BDDBA5A007C5977 /* HomeScreenView.swift in Sources */,
 				EF9F6E1C2BDF6747007C5977 /* NewsSheetView.swift in Sources */,
@@ -215,12 +235,16 @@
 				EF9F6E4E2BE3259D007C5977 /* APIService.swift in Sources */,
 				EF9F6E522BE395B0007C5977 /* PortfolioViewModel.swift in Sources */,
 				EF9F6E1A2BDF6712007C5977 /* TradeSheetView.swift in Sources */,
+				EFCB97482BE3F4DC0002893E /* HighChartsHourlyView.swift in Sources */,
 				EF9F6E0B2BDDE9D6007C5977 /* StockDetailsView.swift in Sources */,
 				EFCB97422BE3D9000002893E /* InsiderViewModel.swift in Sources */,
+				EFCB97462BE3F2D90002893E /* HighChartsEarningsView.swift in Sources */,
 				EF00E6BF2BCF536200E19735 /* SwiftTradeApp.swift in Sources */,
+				EFCB974E2BE3F5DD0002893E /* HighChartsRecommendationView.swift in Sources */,
 				EF9F6E172BDF2771007C5977 /* ErrorModel.swift in Sources */,
 				EF9F6E102BDF26E5007C5977 /* StockOverviewModel.swift in Sources */,
 				EF9F6E1E2BDF6DAF007C5977 /* StockNewsModel.swift in Sources */,
+				EFCB974A2BE3F5640002893E /* DummyData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
