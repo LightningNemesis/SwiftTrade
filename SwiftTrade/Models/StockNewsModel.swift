@@ -9,7 +9,7 @@ import Foundation
 
 struct StockNewsModel: Codable, Identifiable {
     let id: Int
-    let datetime: Date
+    let datetime: TimeInterval
     let source: String
     let headline: String
     let summary: String

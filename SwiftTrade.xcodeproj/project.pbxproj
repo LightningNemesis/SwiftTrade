@@ -131,6 +131,8 @@
 			dependencies = (
 			);
 			name = SwiftTrade;
+			packageProductDependencies = (
+			);
 			productName = SwiftTrade;
 			productReference = EF00E6BB2BCF536200E19735 /* SwiftTrade.app */;
 			productType = "com.apple.product-type.application";
@@ -159,6 +161,10 @@
 				Base,
 			);
 			mainGroup = EF00E6B22BCF536100E19735;
+			packageReferences = (
+				EF9F6E1F2BE08D4B007C5977 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
+				EF9F6E222BE08E0B007C5977 /* XCRemoteSwiftPackageReference "highcharts-ios" */,
+			);
 			productRefGroup = EF00E6BC2BCF536200E19735 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -400,6 +406,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EF9F6E1F2BE08D4B007C5977 /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-algorithms.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+		EF9F6E222BE08E0B007C5977 /* XCRemoteSwiftPackageReference "highcharts-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/highcharts/highcharts-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = EF00E6B32BCF536100E19735 /* Project object */;
 }

@@ -31,7 +31,7 @@ struct NewsSheetView: View {
                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
             
-            Text("March 22, 2024")
+            Text(convertTimestampToDate(timestamp: newsItem.datetime))
                 .font(.headline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
@@ -50,11 +50,15 @@ struct NewsSheetView: View {
             HStack{
                 Text("For more details click")
                     .foregroundColor(.gray)
-                Button(action: {
-                    
-                }, label: {
-                    Text("here")
-                })
+//                Button(action: {
+//                    
+//                }, label: {
+//                    Text("here")
+//                })
+                if let url = URL(string: newsItem.url) {
+                    Link("here", destination: url)
+                }
+
             }
             .font(.footnote)
             .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
@@ -72,6 +76,16 @@ struct NewsSheetView: View {
         }
         .padding(.horizontal)
     }
+    
+    func convertTimestampToDate(timestamp: TimeInterval) -> String {
+        let date = Date(timeIntervalSince1970: timestamp)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .long // month, day & year included
+        dateFormatter.timeStyle = .none // time component not included
+        dateFormatter.locale = Locale(identifier: "en_US") // ensuring English language date strings
+        return dateFormatter.string(from: date)
+    }
+    
 }
 
 //#Preview {

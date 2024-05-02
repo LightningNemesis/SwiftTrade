@@ -12,7 +12,6 @@ struct StockDetailsView: View {
     @Environment(\.presentationMode) var presentationMode
         
     @State var showTradeSheet: Bool = false
-//    @State var showNewsSheet: Bool = false
     
     @StateObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
     
@@ -85,30 +84,26 @@ struct NamePriceView: View {
     @ObservedObject var stockDetailViewModel: StockDetailViewModel
     
     var body: some View {
-        if stockDetailViewModel.isLoading {
-            ProgressView()
-        } else {
-            VStack(alignment:.leading){
-                Text(stockDetailViewModel.stockOverview.name)
-                    .font(.title2)
-                    .foregroundColor(.gray)
-                    .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
+        VStack(alignment:.leading){
+            Text(stockDetailViewModel.stockOverview.name)
+                .font(.title2)
+                .foregroundColor(.gray)
+                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
+            
+            HStack(alignment: .center){
+                Text(String(format: "$%.2f", stockDetailViewModel.stat.h))
+                    .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
+                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                 
-                HStack(alignment: .center){
-                    Text(String(format: "$%.2f", stockDetailViewModel.stat.h))
-                        .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
-                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                    
-                    Image(systemName: "arrow.up.forward")
-                        .foregroundColor(.green)
-                    Text(String(format: "$%.2f (%.2f%%)", stockDetailViewModel.stat.dp, stockDetailViewModel.stat.pc))
-                        .font(.title2)
-                        .foregroundColor(.green)
-                    
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical)
+                Image(systemName: "arrow.up.forward")
+                    .foregroundColor(.green)
+                Text(String(format: "$%.2f (%.2f%%)", stockDetailViewModel.stat.dp, stockDetailViewModel.stat.pc))
+                    .font(.title2)
+                    .foregroundColor(.green)
+                
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical)
         }
     }
 }
@@ -251,8 +246,6 @@ struct AboutView: View {
 struct NewsView: View {
     
     @ObservedObject var stockDetailViewModel: StockDetailViewModel
-//    @Binding var showNewsSheet: Bool
-    
     @State private var selectedNewsItem: StockNewsModel?
     
     var body: some View {
@@ -262,7 +255,6 @@ struct NewsView: View {
                 if let firstNews = stockDetailViewModel.companyNews.first {
                     Button(action: {
                         selectedNewsItem = stockDetailViewModel.companyNews.first
-//                        showNewsSheet.toggle()
                     }, label: {
                         VStack(alignment: .leading){
                             AsyncImage(url: URL(string: firstNews.image), content: { returnedImage in
@@ -281,7 +273,7 @@ struct NewsView: View {
                                     .font(.caption)
                                     .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                                     .foregroundColor(.gray)
-                                Text("4 hr, 37 min")
+                                Text(convertTimestampToDuration(timestamp: firstNews.datetime))
                                     .font(.caption)
                                     .foregroundColor(.gray)
                             }
@@ -305,7 +297,6 @@ struct NewsView: View {
                 ForEach(stockDetailViewModel.companyNews.dropFirst()){ newsItem in
                     Button(action: {
                         selectedNewsItem = newsItem
-//                        showNewsSheet.toggle()
                     }, label: {
                         HStack(alignment:.top){
                             VStack(alignment: .leading){
@@ -314,7 +305,7 @@ struct NewsView: View {
                                         .font(.caption)
                                         .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                                         .foregroundColor(.gray)
-                                    Text("4 hr, 37 min")
+                                    Text(convertTimestampToDuration(timestamp: newsItem.datetime))
                                         .font(.caption)
                                         .foregroundColor(.gray)
                                 }
@@ -345,5 +336,18 @@ struct NewsView: View {
                 NewsSheetView(newsItem: newsItem)
             })
         }
+    }
+    
+    func convertTimestampToDuration(timestamp: TimeInterval) -> String {
+        let targetDate = Date(timeIntervalSince1970: timestamp)
+        let currentDate = Date()
+        let timeInterval = currentDate.timeIntervalSince(targetDate)
+        
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute]
+        formatter.unitsStyle = .short
+        formatter.zeroFormattingBehavior = .dropAll
+        
+        return formatter.string(from: timeInterval) ?? "Time not available"
     }
 }

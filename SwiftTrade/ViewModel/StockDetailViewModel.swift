@@ -121,7 +121,7 @@ class StockDetailViewModel: ObservableObject {
     }
     
     func getCompanyNews() async throws {
-        let endpoint = "https://finnhub.io/api/v1/company-news?symbol=AAPL&from=2022-01-15&to=2024-02-09&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
+        let endpoint = "https://finnhub.io/api/v1/company-news?symbol=AAPL&from=2024-04-28&to=2024-04-29&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig" // from: yesterday, to: today [FIX]
         
         guard let url = URL(string: endpoint) else {
             throw StockError.invalidURL

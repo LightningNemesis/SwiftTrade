@@ -29,10 +29,11 @@ struct HomeScreenView: View {
     
     
     @State var stockInput: String = ""
+    @FocusState private var isTextFieldFocused: Bool
+    
     @State var date: String = "March 21, 2024"
     @State var netWorth: Float = 25000.00
     @State var cashBalance: Float = 25000.00
-    
     
     @State var portfolio: [PortfolioModel] = [
             PortfolioModel(ticker: "AAPL", count: 3, totalPrice: 517.74, changePrice: 0.03, changePercent: 0.01),
@@ -54,47 +55,89 @@ struct HomeScreenView: View {
                 
                 // Foreground
                 VStack{
+                    HStack{
+                        // Search bar
+                        SearchBarView(
+                            stockInput: $stockInput,
+                            isTextFieldFocused: $isTextFieldFocused
+                        )
+                        
+                        if isTextFieldFocused {
+                            Button(action: {
+                                stockInput = ""
+                            }, label: {
+                                Text("Cancel")
+                            })
+                            .padding(.trailing)
+                        }
+                    }
                     
-                    // Search bar
-                    SearchBarView(stockInput: $stockInput)
                     
-                    // Date
-                    DateView(date: $date)
+                    //Spacer()
                     
-                    // Portfolio, Favorites & Footer Button
-                
-                    List{
-                        Section(
-                            header: Text("Portfolio")
-                        ){
-                            HStack{
-                                VStack(alignment:.leading){
-                                    Text("Net Worth")
-                                        .font(.title2)
-                                    Text(String(format: "$%.2f", netWorth))
-                                        .font(.title2)
-                                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                    
+                    if !textFieldContainsInput() {
+                        // Date
+                        DateView(date: $date)
+                        
+                        // Portfolio, Favorites & Footer Button
+                        List{
+                            Section(
+                                header: Text("Portfolio")
+                            ){
+                                HStack{
+                                    VStack(alignment:.leading){
+                                        Text("Net Worth")
+                                            .font(.title2)
+                                        Text(String(format: "$%.2f", netWorth))
+                                            .font(.title2)
+                                            .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                    }
+                                    Spacer()
+                                    VStack(alignment:.leading){
+                                        Text("Cash Balance")
+                                            .font(.title2)
+                                        Text(String(format: "$%.2f", cashBalance))
+                                            .font(.title2)
+                                            .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                    }
                                 }
-                                Spacer()
-                                VStack(alignment:.leading){
-                                    Text("Cash Balance")
-                                        .font(.title2)
-                                    Text(String(format: "$%.2f", cashBalance))
-                                        .font(.title2)
-                                        .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                
+                                ForEach(portfolio){ portItem in
+                                    NavigationLink {
+                                        StockDetailsView()
+                                    } label: {
+                                        HStack{
+                                            VStack(alignment: .leading){
+                                                Text(portItem.ticker)
+                                                    .font(.headline)
+                                                        
+                                                Text("\(portItem.count) shares")
+                                                    .font(.caption)
+                                                    .foregroundColor(.gray)
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            VStack(alignment:.trailing){
+                                                Text(String(format: "$%.2f", portItem.totalPrice))
+                                                    .font(.subheadline)
+                                                    .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
+                                                Text(String(format: "↗ $%.2f (%.2f%%)", portItem.changePrice, portItem.changePercent ))
+                                                    .font(.subheadline)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             
-                            ForEach(portfolio){ portItem in
-                                NavigationLink {
-                                    StockDetailsView()
-                                } label: {
+                            Section(header: Text("Favourites")) {
+                                ForEach(favorites){ favItem in
                                     HStack{
                                         VStack(alignment: .leading){
-                                            Text(portItem.ticker)
+                                            Text(favItem.ticker)
                                                 .font(.headline)
-                                                    
-                                            Text("\(portItem.count) shares")
+                                            Text(favItem.name)
                                                 .font(.caption)
                                                 .foregroundColor(.gray)
                                         }
@@ -102,60 +145,53 @@ struct HomeScreenView: View {
                                         Spacer()
                                         
                                         VStack(alignment:.trailing){
-                                            Text(String(format: "$%.2f", portItem.totalPrice))
+                                            Text(String(format: "$%.2f", favItem.currentPrice))
                                                 .font(.subheadline)
                                                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                                            Text(String(format: "↗ $%.2f (%.2f%%)", portItem.changePrice, portItem.changePercent ))
+                                            Text(String(format: "↗ $%.2f (%.2f%%)", favItem.changePrice, favItem.changePercent ))
                                                 .font(.subheadline)
                                         }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Section(header: Text("Favourites")) {
-                            ForEach(favorites){ favItem in
-                                HStack{
-                                    VStack(alignment: .leading){
-                                        Text(favItem.ticker)
-                                            .font(.headline)
-                                        Text(favItem.name)
-                                            .font(.caption)
+                                        
+                                        Image(systemName:"chevron.right")
                                             .foregroundColor(.gray)
                                     }
-                                    
-                                    Spacer()
-                                    
-                                    VStack(alignment:.trailing){
-                                        Text(String(format: "$%.2f", favItem.currentPrice))
-                                            .font(.subheadline)
+                                }
+                                .onDelete(perform: delete)
+                                .onMove(perform: move)
+                            }
+                            
+                            Text("Powered by Finnhub.io")
+                                    .font(.subheadline)
+                                    .fontWeight(.light)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding()
+                                    .background(.white)
+                                    .cornerRadius(10)
+                            
+                        }
+                    } else {
+                        List{
+                            ForEach(0..<10, id: \.self) { index in
+                                NavigationLink(destination: StockDetailsView()) {
+                                    VStack(alignment: .leading){
+                                        Text("AAPL")
+                                            .font(.title3)
                                             .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                                        Text(String(format: "↗ $%.2f (%.2f%%)", favItem.changePrice, favItem.changePercent ))
-                                            .font(.subheadline)
+                                        Text("Apple Inc".uppercased())
+                                            .font(.title3)
+                                            .foregroundColor(.gray)
                                     }
-                                    
-                                    Image(systemName:"chevron.right")
-                                        .foregroundColor(.gray)
                                 }
                             }
-                            .onDelete(perform: delete)
-                            .onMove(perform: move)
                         }
-                        
-                        Text("Powered by Finnhub.io")
-                                .font(.subheadline)
-                                .fontWeight(.light)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
-                                .background(.white)
-                                .cornerRadius(10)
-                        
                     }
+                    
                     
                 }
                 .navigationTitle("Stocks")
                 .navigationBarItems(trailing: EditButton())
-                
+                .navigationBarHidden(isTextFieldFocused)
+                .animation(Animation.default)
             }
         }
     }
@@ -167,6 +203,17 @@ struct HomeScreenView: View {
     func move(indices: IndexSet, newOffset: Int) {
         favorites.move(fromOffsets: indices, toOffset: newOffset)
     }
+    
+    func textFieldContainsInput() -> Bool {
+        if stockInput.count >= 1 {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    
+        
 }
 
 #Preview {
@@ -193,12 +240,14 @@ struct DateView: View {
 
 struct SearchBarView: View {
     @Binding var stockInput: String
+    var isTextFieldFocused: FocusState<Bool>.Binding
     
     var body: some View {
         TextField(
             "🔎 Search",
             text: $stockInput
         )
+        .focused(isTextFieldFocused)
         .padding(.top, 10)
         .padding(.bottom, 10)
         .padding(.horizontal)
