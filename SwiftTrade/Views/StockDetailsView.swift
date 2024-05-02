@@ -10,22 +10,23 @@ import SwiftUI
 struct StockDetailsView: View {
     
     @Environment(\.presentationMode) var presentationMode
-        
     @State var showTradeSheet: Bool = false
-    
     @StateObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
+    let searchedStock: String
     
     var body: some View {
         ScrollView (showsIndicators:false){
-            
-            if stockDetailViewModel.isLoading{
+            if stockDetailViewModel.isLoading {
                 ProgressView()
             }else{
                 // Name, Price and Change in Price
                 NamePriceView(stockDetailViewModel: stockDetailViewModel)
                 
                 // Portfolio subview
-                PortfolioView(showTradeSheet: $showTradeSheet)
+                PortfolioView(
+                    stockDetailViewModel: stockDetailViewModel, 
+                    showTradeSheet: $showTradeSheet
+                )
                 
                 // Stats subview
                 StatsView(stockDetailViewModel: stockDetailViewModel)
@@ -47,7 +48,7 @@ struct StockDetailsView: View {
             }
         }
         .padding(.horizontal)
-        .navigationTitle("AAPL")
+        .navigationTitle(searchedStock)
         .navigationBarItems(
             leading:
                 Button(
@@ -66,7 +67,7 @@ struct StockDetailsView: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             Task {
-                await stockDetailViewModel.loadData()
+                await stockDetailViewModel.loadData(stock: searchedStock)
             }
         }
     }
@@ -76,7 +77,7 @@ struct StockDetailsView: View {
 
 
 #Preview {
-        StockDetailsView()    
+        StockDetailsView(searchedStock: "ANET")
 }
 
 struct NamePriceView: View {
@@ -109,6 +110,7 @@ struct NamePriceView: View {
 }
 
 struct PortfolioView: View {
+    @ObservedObject var stockDetailViewModel: StockDetailViewModel
     @Binding var showTradeSheet: Bool
     
     var body: some View {
@@ -136,7 +138,7 @@ struct PortfolioView: View {
                     
                 })
                 .sheet(isPresented: $showTradeSheet, content: {
-                    TradeSheetView()
+                    TradeSheetView(stockDetailViewModel: stockDetailViewModel)
                 })
                 
             }
@@ -224,6 +226,8 @@ struct AboutView: View {
                     Text(stockDetailViewModel.stockOverview.finnhubIndustry)
                     if let url = URL(string: stockDetailViewModel.stockOverview.weburl) {
                         Link(stockDetailViewModel.stockOverview.weburl, destination: url)
+                        .lineLimit(1) // Ensures the text does not wrap
+                        .truncationMode(.tail) // Adds '...' if the text is too long
                     }
                     ScrollView(.horizontal, showsIndicators:false, content:{
                         LazyHStack{
@@ -235,9 +239,9 @@ struct AboutView: View {
                     })
                     
                 }
+                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
                 .font(.subheadline)
             }
-            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
             .padding(.vertical, 5)
         }
     }
@@ -260,8 +264,8 @@ struct NewsView: View {
                             AsyncImage(url: URL(string: firstNews.image), content: { returnedImage in
                                 returnedImage
                                     .resizable()
-                                    .scaledToFill()
                                     .frame(height: 200)
+                                    .scaledToFill()
                                     .cornerRadius(10)
                             }, placeholder: {
                                 ProgressView()

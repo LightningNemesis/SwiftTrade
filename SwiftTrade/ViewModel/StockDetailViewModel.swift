@@ -17,15 +17,15 @@ class StockDetailViewModel: ObservableObject {
     
     init() {}
     
-    func loadData() async {
+    func loadData(stock: String) async {
         do {
             DispatchQueue.main.async {
                 self.isLoading = true
             }
-            try await getStockOverview()
-            try await getStat()
-            try await getCompanyPeers()
-            try await getCompanyNews()
+            try await getStockOverview(stock: stock)
+            try await getStat(stock: stock)
+            try await getCompanyPeers(stock: stock)
+            try await getCompanyNews(stock: stock)
             DispatchQueue.main.async {
                 self.isLoading = false
             }            
@@ -41,8 +41,8 @@ class StockDetailViewModel: ObservableObject {
     }
     
     // GET Stock Overview
-    func getStockOverview() async throws {
-        let endpoint = "https://finnhub.io/api/v1/stock/profile2?symbol=AAPL&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
+    func getStockOverview(stock: String) async throws {
+        let endpoint = "https://finnhub.io/api/v1/stock/profile2?symbol=\(stock)&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
         
         guard let url = URL(string: endpoint) else {
             throw StockError.invalidURL
@@ -68,8 +68,8 @@ class StockDetailViewModel: ObservableObject {
     }
     
     // GET Stock Summary
-    func getStat() async throws {
-        let endpoint = "https://finnhub.io/api/v1/quote?symbol=AAPL&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
+    func getStat(stock: String) async throws {
+        let endpoint = "https://finnhub.io/api/v1/quote?symbol=\(stock)&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
         
         guard let url = URL(string: endpoint) else {
             throw StockError.invalidURL
@@ -97,8 +97,8 @@ class StockDetailViewModel: ObservableObject {
         }
     }
     
-    func getCompanyPeers() async throws {
-        let endpoint = "https://finnhub.io/api/v1/stock/peers?symbol=ANET&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
+    func getCompanyPeers(stock: String) async throws {
+        let endpoint = "https://finnhub.io/api/v1/stock/peers?symbol=\(stock)&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
         
         guard let url = URL(string: endpoint) else {
             throw StockError.invalidURL
@@ -120,8 +120,8 @@ class StockDetailViewModel: ObservableObject {
         }
     }
     
-    func getCompanyNews() async throws {
-        let endpoint = "https://finnhub.io/api/v1/company-news?symbol=AAPL&from=2024-04-28&to=2024-04-29&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig" // from: yesterday, to: today [FIX]
+    func getCompanyNews(stock: String) async throws {
+        let endpoint = "https://finnhub.io/api/v1/company-news?symbol=\(stock)&from=2024-04-28&to=2024-04-29&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig" // from: yesterday, to: today [FIX]
         
         guard let url = URL(string: endpoint) else {
             throw StockError.invalidURL

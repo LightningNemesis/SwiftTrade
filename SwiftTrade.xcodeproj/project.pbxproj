@@ -19,6 +19,7 @@
 		EF9F6E1A2BDF6712007C5977 /* TradeSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E192BDF6712007C5977 /* TradeSheetView.swift */; };
 		EF9F6E1C2BDF6747007C5977 /* NewsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E1B2BDF6747007C5977 /* NewsSheetView.swift */; };
 		EF9F6E1E2BDF6DAF007C5977 /* StockNewsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E1D2BDF6DAF007C5977 /* StockNewsModel.swift */; };
+		EF9F6E4E2BE3259D007C5977 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF9F6E4D2BE3259D007C5977 /* APIService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		EF9F6E192BDF6712007C5977 /* TradeSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeSheetView.swift; sourceTree = "<group>"; };
 		EF9F6E1B2BDF6747007C5977 /* NewsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsSheetView.swift; sourceTree = "<group>"; };
 		EF9F6E1D2BDF6DAF007C5977 /* StockNewsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockNewsModel.swift; sourceTree = "<group>"; };
+		EF9F6E4D2BE3259D007C5977 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				EF00E6BE2BCF536200E19735 /* SwiftTradeApp.swift */,
+				EF9F6E4C2BE32586007C5977 /* API */,
 				EF9F6E182BDF27F7007C5977 /* Views */,
 				EF9F6E132BDF2730007C5977 /* ViewModel */,
 				EF9F6E0E2BDF26C7007C5977 /* Models */,
@@ -113,6 +116,14 @@
 				EF9F6E1B2BDF6747007C5977 /* NewsSheetView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		EF9F6E4C2BE32586007C5977 /* API */ = {
+			isa = PBXGroup;
+			children = (
+				EF9F6E4D2BE3259D007C5977 /* APIService.swift */,
+			);
+			path = API;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -195,6 +206,7 @@
 				EF9F6E092BDDBA5A007C5977 /* HomeScreenView.swift in Sources */,
 				EF9F6E1C2BDF6747007C5977 /* NewsSheetView.swift in Sources */,
 				EF9F6E122BDF2707007C5977 /* StatModel.swift in Sources */,
+				EF9F6E4E2BE3259D007C5977 /* APIService.swift in Sources */,
 				EF9F6E1A2BDF6712007C5977 /* TradeSheetView.swift in Sources */,
 				EF9F6E0B2BDDE9D6007C5977 /* StockDetailsView.swift in Sources */,
 				EF00E6BF2BCF536200E19735 /* SwiftTradeApp.swift in Sources */,
