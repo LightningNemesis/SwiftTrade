@@ -349,12 +349,12 @@ struct Toast: ViewModifier {
     var text: Text
 
     func body(content: Content) -> some View {
-        ZStack (alignment: .center){
+        ZStack (alignment: .bottom){
             content
             if isShowing {
                 text
                     .padding()
-                    .padding(.vertical)
+                    .padding(.vertical, 5)
                     .background(.gray)
                     .foregroundColor(Color.white)
                     .cornerRadius(20)

@@ -27,7 +27,8 @@ struct StockDetailsView: View {
     @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @StateObject var insiderViewModel: InsiderViewModel = InsiderViewModel()
     
-//    @State var alreadyInFavorite: Bool = false
+    @State var addedToFavToast: Bool = false
+    @State var removedFromFavToast: Bool = false
     
     @StateObject var highChartsViewModel: HighChartsViewModel = HighChartsViewModel()
     
@@ -37,23 +38,17 @@ struct StockDetailsView: View {
         let favItem: FavoriteItem = FavoriteItem(c: stockDetailViewModel.stat.c, d: stockDetailViewModel.stat.d, dp: stockDetailViewModel.stat.dp, ipo: stockDetailViewModel.stockOverview.ipo, ticker: stockDetailViewModel.stockOverview.ticker, weburl: stockDetailViewModel.stockOverview.weburl, name: stockDetailViewModel.stockOverview.name)
         
         await favoriteViewModel.addWatchlist(item: favItem)
+        addedToFavToast = true
     }
     
     func removeFromFavorite() async {
         if let index = favoriteViewModel.favoriteModel.firstIndex(where: { $0.ticker == stockDetailViewModel.stockOverview.ticker }) {
             await favoriteViewModel.removeWatchlist(item: favoriteViewModel.favoriteModel[index])
+            removedFromFavToast = true
         }
     }
     
     func checkAlreadyInFavorite() -> Bool {
-//        print("Size of favorites: \(favoriteViewModel.favoriteModel.count)")
-//        for item in favoriteViewModel.favoriteModel {
-//            print("Ticker printing: ...... \(item.ticker)")
-//            if item.ticker == stockDetailViewModel.stockOverview.ticker {
-//                return true
-//            }
-//        }
-//        return false
         return favoriteViewModel.favoriteModel.contains { $0.ticker == stockDetailViewModel.stockOverview.ticker }
     }
 
@@ -148,6 +143,9 @@ struct StockDetailsView: View {
                 }
             }
         }
+        .toast(isShowing: $addedToFavToast, text: Text("Added \(stockDetailViewModel.stockOverview.ticker) to Favorites"))
+        .toast(isShowing: $removedFromFavToast, text: Text("Removed \(stockDetailViewModel.stockOverview.ticker) from Favorites"))
+
         .padding(.horizontal)
         .navigationTitle(searchedStock)
         .navigationBarItems(
@@ -638,3 +636,5 @@ struct NewsView: View {
         return formatter.string(from: timeInterval) ?? "Time not available"
     }
 }
+
+
