@@ -8,7 +8,7 @@
 import Foundation
 
 class StockDetailViewModel: ObservableObject {
-    @Published var stockOverview: StockOverviewModel = StockOverviewModel(name: "Apple Inc", ticker: "AAPL", ipo: "1980-12-12", finnhubIndustry: "Technology", weburl: "https://www.apple.com/")
+    @Published var stockOverview: StockOverviewModel = StockOverviewModel(name: "Apple Inc", ticker: "AAPL", ipo: "1980-12-12", finnhubIndustry: "Technology", weburl: "https://www.apple.com/", logo: "")
     @Published var stat: StatModel = StatModel(c: 0.0, d: 0.0, dp: 0.0, h: 0.1, l: 0.0, o: 0.0, pc: 0.0, t: 0)
     @Published var stockPeers: [String] = []
     @Published var companyNews: [StockNewsModel] = []

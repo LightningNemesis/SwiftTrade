@@ -13,4 +13,5 @@ struct StockOverviewModel: Codable {
     let ipo: String
     let finnhubIndustry: String
     let weburl: String // website
+    let logo: String
 }

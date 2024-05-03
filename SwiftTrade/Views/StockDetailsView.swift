@@ -222,10 +222,23 @@ struct NamePriceView: View {
     
     var body: some View {
         VStack(alignment:.leading){
-            Text(stockDetailViewModel.stockOverview.name)
-                .font(.title2)
-                .foregroundColor(.gray)
-                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
+            HStack{
+                Text(stockDetailViewModel.stockOverview.name)
+                    .font(.title2)
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
+                
+                AsyncImage(url: URL(string: stockDetailViewModel.stockOverview.logo), content: { returnedImage in
+                    returnedImage
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .scaledToFill()
+                        .cornerRadius(5)
+                }, placeholder: {
+                    ProgressView()
+                })
+            }
+            
             
             HStack(alignment: .center){
                 Text(String(format: "$%.2f", stockDetailViewModel.stat.h))
@@ -259,7 +272,7 @@ struct PortfolioView: View {
             
             HStack{
                 if portfolioViewModel.portfolioModel.isEmpty || getPortfolioItem(ticker: stockDetailViewModel.stockOverview.ticker) == nil {
-                    Text("You have 0 shares of AAPL.\nStart trading!")
+                    Text("You have 0 shares of \(stockDetailViewModel.stockOverview.ticker).\nStart trading!")
                         .font(.subheadline)
                 } else {
                     if let portfolioFoundItem = getPortfolioItem(ticker: stockDetailViewModel.stockOverview.ticker) {
