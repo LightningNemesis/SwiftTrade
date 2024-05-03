@@ -232,7 +232,7 @@ struct TradeSheetView: View {
                             .onChange(of: stockCount, perform: { _ in
                                 calcPrice()
                             })
-                            .font(.largeTitle)
+                            .font(.system(size: 100))  
                             .foregroundColor(.gray)
                         
                         Spacer()

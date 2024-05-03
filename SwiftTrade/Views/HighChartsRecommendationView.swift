@@ -140,7 +140,7 @@ struct HighChartsRecommendationView: UIViewRepresentable {
               legend: {
                 align: "center",
                 verticalAlign: "bottom",
-                backgroundColor: "#f8f8f8",
+                //backgroundColor: "#f8f8f8",
                 borderColor: "none",
                 borderWidth: 1,
                 shadow: false,
