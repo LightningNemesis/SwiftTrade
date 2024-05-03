@@ -12,6 +12,7 @@ import Foundation
 struct HighChartsHourlyView: UIViewRepresentable {
     var hourlyData: [HourlyModel]  // Array of HourlyModel
     var ticker: String
+    var currentPrice: Float
     
     @ObservedObject var highChartsViewModel: HighChartsViewModel = HighChartsViewModel()
     
@@ -23,7 +24,7 @@ struct HighChartsHourlyView: UIViewRepresentable {
     
     func updateUIView(_ webView: WKWebView, context: Context) {
         let dataString = hourlyData.map { "[\($0.t), \($0.c)]" }.joined(separator: ", ")
-//        print("Hourly data: \(dataString)")
+        let color = currentPrice > 0 ? "green" : "red"
         
         let htmlContent: String =
     """
@@ -135,7 +136,8 @@ struct HighChartsHourlyView: UIViewRepresentable {
         },
         series: [{
             name: '',
-            data: [\(dataString)]
+            data: [\(dataString)],
+            color: '\(color)'
         }],
 
         responsive: {

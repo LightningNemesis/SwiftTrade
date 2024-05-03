@@ -32,6 +32,8 @@ struct StockDetailsView: View {
     
     @StateObject var highChartsViewModel: HighChartsViewModel = HighChartsViewModel()
     
+    @State private var isFirstTime = true
+    
     let searchedStock: String
     
     func addToFavorite() async {
@@ -64,7 +66,7 @@ struct StockDetailsView: View {
                 
                 TabView {
                     if !highChartsViewModel.isLoading {
-                        HighChartsHourlyView(hourlyData: highChartsViewModel.hourlyModel!, ticker: stockDetailViewModel.stockOverview.ticker)
+                        HighChartsHourlyView(hourlyData: highChartsViewModel.hourlyModel!, ticker: stockDetailViewModel.stockOverview.ticker, currentPrice: stockDetailViewModel.stat.c)
                             .frame(height: 430, alignment: .bottom)
                             .tabItem {
                                 Image(systemName: "chart.xyaxis.line")
@@ -102,7 +104,8 @@ struct StockDetailsView: View {
                 StatsView(stockDetailViewModel: stockDetailViewModel)
                 
                 // About subview
-                AboutView(stockDetailViewModel: stockDetailViewModel)
+                AboutView(
+                    stockDetailViewModel: stockDetailViewModel, portfolioViewModel: portfolioViewModel, walletViewModel: walletViewModel, favoriteViewModel: favoriteViewModel)
                 
                 // Insights subview
                 VStack{
@@ -213,11 +216,11 @@ struct NamePriceView: View {
                     .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
                     .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                 
-                Image(systemName: "arrow.up.forward")
-                    .foregroundColor(.green)
-                Text(String(format: "$%.2f (%.2f%%)", stockDetailViewModel.stat.dp, stockDetailViewModel.stat.pc))
+                Image(systemName: stockDetailViewModel.stat.d >= 0 ? "arrow.up.right" : "arrow.down.right")
+                    .foregroundColor(stockDetailViewModel.stat.d >= 0 ? .green : .red)
+                Text(String(format: "$%.2f (%.2f%%)", stockDetailViewModel.stat.d, stockDetailViewModel.stat.dp))
                     .font(.title2)
-                    .foregroundColor(.green)
+                    .foregroundColor(stockDetailViewModel.stat.d >= 0 ? .green : .red)
                 
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -384,6 +387,10 @@ struct StatsView: View {
 struct AboutView: View {
     
     @ObservedObject var stockDetailViewModel: StockDetailViewModel
+    @ObservedObject var portfolioViewModel: PortfolioViewModel
+    @ObservedObject var walletViewModel: WalletViewModel
+    @ObservedObject var favoriteViewModel: FavoriteViewModel
+    
     
     var body: some View {
         VStack{
@@ -416,8 +423,18 @@ struct AboutView: View {
                     ScrollView(.horizontal, showsIndicators:false, content:{
                         LazyHStack{
                             ForEach(stockDetailViewModel.stockPeers, id: \.self){ peer in
-                                Text("\(peer.uppercased()),")
-                                    .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                                NavigationLink(
+                                    destination: 
+                                        StockDetailsView(searchedStock: peer)
+                                        .environmentObject(portfolioViewModel)
+                                        .environmentObject(walletViewModel)
+                                        .environmentObject(favoriteViewModel)
+                                ) {
+                                    Text("\(peer.uppercased()),")
+                                        .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                                }
+                                
+                                
                             }
                         }
                     })

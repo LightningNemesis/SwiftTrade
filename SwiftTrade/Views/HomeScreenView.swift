@@ -153,36 +153,6 @@ class AutocompleteViewModel: ObservableObject {
     }
 }
 
-//class PortfolioViewModel: ObservableObject {
-//    @Published var portfolioModel: [PortfolioResponse]
-//    @Published var isLoading: Bool
-//    
-//    init() {
-//        self.portfolioModel = []
-//        self.isLoading = false
-//    }
-//    
-//    func getPortfolio() async {
-//        do {
-//            let myAPIService: FinnhubAPIService = FinnhubAPIService(
-//                baseURL: "https://nemesis-node-server.wl.r.appspot.com/api",
-//                token: ""
-//            )
-//            
-//            let response: [PortfolioResponse] = try await myAPIService.fetchData(from: "/portfolio", decodingType: [PortfolioResponse].self)
-//            
-//            DispatchQueue.main.async {
-//                self.isLoading = true
-//                self.portfolioModel = response
-//                self.isLoading = false
-//            }
-//            
-//        }catch {
-//            print("Failed to fetch portfolio data: \(error)")
-//        }
-//    }
-//}
-
 class FavoriteViewModel: ObservableObject {
     @Published var favoriteModel: [FavoriteResponse]
     @Published var isLoading: Bool
@@ -263,9 +233,78 @@ class FavoriteViewModel: ObservableObject {
     }
 }
 
+struct CustomStat: Codable, Identifiable {
+    var id: String = UUID().uuidString
+    var stat: StatModel
+    var portfolioItem: PortfolioResponse
+}
+
+class PortfolioDetailModel: ObservableObject {
+    @Published var stat: StatModel?
+    @Published var customStat: [CustomStat] = []
+    @Published var isLoading: Bool = false
+    
+    init() {
+        self.stat = StatModel(c: 0.0, d: 0.0, dp: 0.0, h: 0.1, l: 0.0, o: 0.0, pc: 0.0, t: 0)
+        self.customStat = []
+        self.isLoading = false
+    }
+    
+    // GET Stock Summary
+    func getStat(stock: String) async throws -> StatModel {
+        let endpoint = "https://finnhub.io/api/v1/quote?symbol=\(stock)&token=cn2vjohr01qt9t7visi0cn2vjohr01qt9t7visig"
+        
+        guard let url = URL(string: endpoint) else {
+            throw StockError.invalidURL
+        }
+        
+        let (data, response) = try await URLSession.shared.data(from: url) // making the GET request
+        
+        guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+            throw StockError.invalidResponse
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            let decodedData = try decoder.decode(StatModel.self, from: data)
+            
+            return decodedData
+//            DispatchQueue.main.async {
+//                self.stat = decodedData
+//                self.customStat.stat = decodedData
+//                self.customStat.ticker = stock
+//            }
+        } catch {
+            throw StockError.invalidData
+        }
+    }
+    
+    func transformData(portfolioData: [PortfolioResponse]) async {
+        var customStatDataArray: [CustomStat] = []
+        for element in portfolioData {
+            do {
+                let statData = try await getStat(stock: element.ticker)
+                let customStatElement = CustomStat(stat: statData, portfolioItem: element)
+                customStatDataArray.append(customStatElement)
+            } catch {
+                print(error)
+            }
+        }
+        DispatchQueue.main.async {
+            
+            self.isLoading = true
+            self.customStat = customStatDataArray
+            self.isLoading = false
+        }
+        
+    }
+}
+
 struct HomeScreenView: View {
     @StateObject var autocompleteViewModel: AutocompleteViewModel = AutocompleteViewModel()
     @StateObject var portfolioViewModel: PortfolioViewModel = PortfolioViewModel()
+    @StateObject var portfolioDetailViewModel: PortfolioDetailModel = PortfolioDetailModel()
     @StateObject var favoriteViewModel: FavoriteViewModel = FavoriteViewModel()
     @StateObject var walletViewModel: WalletViewModel = WalletViewModel()
     
@@ -311,7 +350,7 @@ struct HomeScreenView: View {
                         DateView(date: $date)
                         
                         // Portfolio, Favorites & Footer Button
-                        if portfolioViewModel.isLoading || favoriteViewModel.isLoading || walletViewModel.isLoading {
+                        if portfolioViewModel.isLoading || favoriteViewModel.isLoading || walletViewModel.isLoading || portfolioDetailViewModel.isLoading{
                             ProgressView()
                         } else {
                             List{
@@ -337,38 +376,42 @@ struct HomeScreenView: View {
                                     }
                                     
                                     
-                                    
-                                    ForEach(portfolioViewModel.portfolioModel) { portItem in
+                                    ForEach(portfolioDetailViewModel.customStat) { item in
                                         NavigationLink {
                                             StockDetailsView(
                                                 portfolioViewModel: portfolioViewModel,
                                                 walletViewModel: walletViewModel,
-                                                searchedStock: portItem.ticker                                                
+                                                searchedStock: item.portfolioItem.ticker
                                             )
                                             .environmentObject(portfolioViewModel)
                                             .environmentObject(walletViewModel)
                                             .environmentObject(favoriteViewModel)
                                         } label: {
-                                            HStack{
-                                                VStack(alignment: .leading){
-                                                    Text(portItem.ticker)
+                                            HStack {
+                                                VStack(alignment: .leading) {
+                                                    Text(item.portfolioItem.ticker)
                                                         .font(.headline)
-                                                    Text("\(portItem.quantity) shares")
+                                                    Text("\(item.portfolioItem.quantity) shares")
                                                         .font(.caption)
                                                         .foregroundColor(.gray)
                                                 }
-                                                
                                                 Spacer()
-                                                
                                                 VStack(alignment:.trailing){
-                                                    Text(String(format: "$%.2f", portItem.totalCost))
+                                                    Text(String(format: "$%.2f", item.portfolioItem.totalCost))
                                                         .font(.subheadline)
                                                         .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                                                    Text(String(format: "↗ $%.2f (%.2f%%)", portItem.change, portItem.change ))
-                                                        .font(.subheadline)
+                                                    HStack{
+                                                        Image(systemName: item.stat.d >= 0 ? "arrow.up.right" : "arrow.down.right")
+                                                            .foregroundColor(item.stat.d >= 0 ? .green : .red)
+                                                        Text(String(format: "$%.2f (%.2f%%)", item.stat.d, item.stat.d ))
+                                                            .font(.subheadline)
+                                                            .foregroundColor(item.stat.d >= 0 ? .green : .red)
+                                                    }
                                                 }
                                             }
                                         }
+
+                                        
                                     }
                                 }
                                 
@@ -399,8 +442,13 @@ struct HomeScreenView: View {
                                                     Text(String(format: "$%.2f", favItem.c))
                                                         .font(.subheadline)
                                                         .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
-                                                    Text(String(format: "↗ $%.2f (%.2f%%)", favItem.d, favItem.dp ))
-                                                        .font(.subheadline)
+                                                    HStack{
+                                                        Image(systemName: favItem.d >= 0 ? "arrow.up.right" : "arrow.down.right")
+                                                            .foregroundColor(favItem.d >= 0 ? .green : .red)
+                                                        Text(String(format: "$%.2f (%.2f%%)", favItem.d, favItem.dp ))
+                                                            .font(.subheadline)
+                                                            .foregroundColor(favItem.d >= 0 ? .green : .red)
+                                                    }
                                                 }
                                             }
                                         }
@@ -454,6 +502,7 @@ struct HomeScreenView: View {
                         await portfolioViewModel.getPortfolio()
                         await favoriteViewModel.getWatchlist()
                         await walletViewModel.getWallet()
+                        await portfolioDetailViewModel.transformData(portfolioData: portfolioViewModel.portfolioModel)
                     }
                 }
                 .navigationTitle("Stocks")
