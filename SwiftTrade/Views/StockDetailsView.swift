@@ -34,6 +34,8 @@ struct StockDetailsView: View {
     
     @State private var isFirstTime = true
     
+    var dunny = true
+    
     let searchedStock: String
     
     func addToFavorite() async {
@@ -56,10 +58,21 @@ struct StockDetailsView: View {
 
     
     var body: some View {
-        ScrollView (showsIndicators:false){
+        VStack{
             if stockDetailViewModel.isLoading || portfolioViewModel.isLoading || insiderViewModel.isLoading {
-                ProgressView()
-            }else{
+                VStack{
+                    
+                    ProgressView()
+                    
+                    Text("Fetching Data...")
+                        .foregroundColor(.gray)
+                    
+                }
+                .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, maxHeight: .infinity)
+                
+            } else {
+            ScrollView (showsIndicators:false){
+                //            if stockDetailViewModel.isLoading || portfolioViewModel.isLoading || insiderViewModel.isLoading {
                 // Name, Price and Change in Price
                 NamePriceView(stockDetailViewModel: stockDetailViewModel)
                 
@@ -92,11 +105,11 @@ struct StockDetailsView: View {
                 }
                 Divider().offset(y: -75)
                 
-
+                
                 
                 // Portfolio subview
                 PortfolioView(
-                    stockDetailViewModel: stockDetailViewModel, 
+                    stockDetailViewModel: stockDetailViewModel,
                     showTradeSheet: $showTradeSheet
                 )
                 
@@ -112,7 +125,7 @@ struct StockDetailsView: View {
                     Text("Insights")
                         .font(/*@START_MENU_TOKEN@*/.title/*@END_MENU_TOKEN@*/)
                         .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
-                       
+                    
                     if !insiderViewModel.insiderModel.isEmpty {
                         InsiderSentimentsView(insiderViewModel: insiderViewModel)
                     }
@@ -145,10 +158,11 @@ struct StockDetailsView: View {
                     NewsView(stockDetailViewModel: stockDetailViewModel)
                 }
             }
+            }
         }
         .toast(isShowing: $addedToFavToast, text: Text("Added \(stockDetailViewModel.stockOverview.ticker) to Favorites"))
         .toast(isShowing: $removedFromFavToast, text: Text("Removed \(stockDetailViewModel.stockOverview.ticker) from Favorites"))
-
+            
         .padding(.horizontal)
         .navigationTitle(searchedStock)
         .navigationBarItems(
@@ -175,9 +189,9 @@ struct StockDetailsView: View {
                     
                 }, label: {
                     Image(systemName: checkAlreadyInFavorite() ? "plus.circle.fill" : "plus.circle")
-                    .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
+                        .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
                 })
-                
+            
         )
         .navigationBarBackButtonHidden(true)
         .onAppear {
@@ -190,6 +204,8 @@ struct StockDetailsView: View {
                 }
             }
         }
+
+        
     }
 }
 

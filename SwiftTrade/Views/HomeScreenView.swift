@@ -243,10 +243,13 @@ class PortfolioDetailModel: ObservableObject {
     @Published var stat: StatModel?
     @Published var customStat: [CustomStat] = []
     @Published var isLoading: Bool = false
+    @Published var netWorth: Float = 0.0
+    
     
     init() {
         self.stat = StatModel(c: 0.0, d: 0.0, dp: 0.0, h: 0.1, l: 0.0, o: 0.0, pc: 0.0, t: 0)
         self.customStat = []
+        self.netWorth = 0.0
         self.isLoading = false
     }
     
@@ -282,11 +285,13 @@ class PortfolioDetailModel: ObservableObject {
     
     func transformData(portfolioData: [PortfolioResponse]) async {
         var customStatDataArray: [CustomStat] = []
+        var netWorthData: Float = 0
         for element in portfolioData {
             do {
                 let statData = try await getStat(stock: element.ticker)
                 let customStatElement = CustomStat(stat: statData, portfolioItem: element)
                 customStatDataArray.append(customStatElement)
+                netWorthData += element.totalCost
             } catch {
                 print(error)
             }
@@ -295,6 +300,7 @@ class PortfolioDetailModel: ObservableObject {
             
             self.isLoading = true
             self.customStat = customStatDataArray
+            self.netWorth  = netWorthData
             self.isLoading = false
         }
         
@@ -316,7 +322,7 @@ struct HomeScreenView: View {
     @State private var debounceTimer: AnyCancellable?
     
     @State var date: String = "March 21, 2024"
-    @State var netWorth: Float = 25000.00    
+//    @State var netWorth: Float = 25000.00    
         
     var body: some View {
         NavigationView{
@@ -347,7 +353,7 @@ struct HomeScreenView: View {
                     
                     if !textFieldContainsInput() {
                         // Date
-                        DateView(date: $date)
+                        DateView()
                         
                         // Portfolio, Favorites & Footer Button
                         if portfolioViewModel.isLoading || favoriteViewModel.isLoading || walletViewModel.isLoading || portfolioDetailViewModel.isLoading{
@@ -361,7 +367,7 @@ struct HomeScreenView: View {
                                         VStack(alignment:.leading){
                                             Text("Net Worth")
                                                 .font(.title2)
-                                            Text(String(format: "$%.2f", netWorth))
+                                            Text(String(format: "$%.2f", portfolioDetailViewModel.netWorth + walletViewModel.amount))
                                                 .font(.title2)
                                                 .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
                                         }
@@ -567,10 +573,11 @@ struct HomeScreenView: View {
 }
 
 struct DateView: View {
-    @Binding var date: String
+//    @Binding var date: String
     
     var body: some View {
-        Text(date)
+        Text(Date().formatted(.longDateFormatter))
+                    .padding()
             .font(.title)
             .fontWeight(/*@START_MENU_TOKEN@*/.bold/*@END_MENU_TOKEN@*/)
             .foregroundStyle(.gray)
@@ -616,5 +623,20 @@ struct SearchBarView: View {
         .background(.white)
         .cornerRadius(10)
         .padding(.horizontal)
+    }
+}
+
+extension DateFormatter {
+    static let longDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter
+    }()
+}
+
+extension Date {
+    func formatted(_ formatter: DateFormatter) -> String {
+        formatter.string(from: self)
     }
 }
