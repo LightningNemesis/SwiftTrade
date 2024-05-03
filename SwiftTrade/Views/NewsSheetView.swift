@@ -64,8 +64,23 @@ struct NewsSheetView: View {
             .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, alignment: .leading)
             
             HStack{
-                Image(systemName: "paperplane.circle.fill")
-                Image(systemName: "tray.circle.fill")
+                Button {
+                    shareOnTwitter(headline: newsItem.headline, url: newsItem.url)
+                } label: {
+                    Image("X")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 35, height: 35)
+                }
+                
+                Button {
+                    shareOnFacebook(url: newsItem.url)
+                } label: {
+                    Image("FB")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 35, height: 35)
+                }
             }
             .font(.largeTitle)
             .padding(.vertical)
@@ -84,6 +99,17 @@ struct NewsSheetView: View {
         dateFormatter.timeStyle = .none // time component not included
         dateFormatter.locale = Locale(identifier: "en_US") // ensuring English language date strings
         return dateFormatter.string(from: date)
+    }
+    
+    func shareOnTwitter(headline: String, url: String) {
+        let tweetText = "\(headline) \(url)"
+        let tweetUrl = "https://twitter.com/intent/tweet?text=\(tweetText)"
+        UIApplication.shared.open(URL(string: tweetUrl)!)
+    }
+
+    func shareOnFacebook(url: String) {
+        let shareUrl = "https://www.facebook.com/sharer/sharer.php?u=\(url)"
+        UIApplication.shared.open(URL(string: shareUrl)!)
     }
     
 }
