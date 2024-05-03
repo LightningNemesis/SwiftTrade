@@ -24,8 +24,10 @@ struct StockDetailsView: View {
     @StateObject var stockDetailViewModel: StockDetailViewModel = StockDetailViewModel()
     @ObservedObject var portfolioViewModel: PortfolioViewModel = PortfolioViewModel()
     @ObservedObject var walletViewModel: WalletViewModel = WalletViewModel()
-    @ObservedObject var favoriteViewModel: FavoriteViewModel = FavoriteViewModel()
+    @EnvironmentObject var favoriteViewModel: FavoriteViewModel
     @StateObject var insiderViewModel: InsiderViewModel = InsiderViewModel()
+    
+//    @State var alreadyInFavorite: Bool = false
     
     @StateObject var highChartsViewModel: HighChartsViewModel = HighChartsViewModel()
     
@@ -36,6 +38,25 @@ struct StockDetailsView: View {
         
         await favoriteViewModel.addWatchlist(item: favItem)
     }
+    
+    func removeFromFavorite() async {
+        if let index = favoriteViewModel.favoriteModel.firstIndex(where: { $0.ticker == stockDetailViewModel.stockOverview.ticker }) {
+            await favoriteViewModel.removeWatchlist(item: favoriteViewModel.favoriteModel[index])
+        }
+    }
+    
+    func checkAlreadyInFavorite() -> Bool {
+//        print("Size of favorites: \(favoriteViewModel.favoriteModel.count)")
+//        for item in favoriteViewModel.favoriteModel {
+//            print("Ticker printing: ...... \(item.ticker)")
+//            if item.ticker == stockDetailViewModel.stockOverview.ticker {
+//                return true
+//            }
+//        }
+//        return false
+        return favoriteViewModel.favoriteModel.contains { $0.ticker == stockDetailViewModel.stockOverview.ticker }
+    }
+
     
     var body: some View {
         ScrollView (showsIndicators:false){
@@ -143,11 +164,16 @@ struct StockDetailsView: View {
             trailing:
                 Button(action: {
                     Task{
-                        await addToFavorite()
+                        if checkAlreadyInFavorite() {
+                            await removeFromFavorite()
+                        }else {
+                            await addToFavorite()
+                        }
+                        
                     }
                     
                 }, label: {
-                    Image(systemName: "plus.circle")
+                    Image(systemName: checkAlreadyInFavorite() ? "plus.circle.fill" : "plus.circle")
                     .foregroundColor(/*@START_MENU_TOKEN@*/.blue/*@END_MENU_TOKEN@*/)
                 })
                 

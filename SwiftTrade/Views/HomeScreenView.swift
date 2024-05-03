@@ -343,7 +343,7 @@ struct HomeScreenView: View {
                                             StockDetailsView(
                                                 portfolioViewModel: portfolioViewModel,
                                                 walletViewModel: walletViewModel,
-                                                searchedStock: portItem.ticker
+                                                searchedStock: portItem.ticker                                                
                                             )
                                             .environmentObject(portfolioViewModel)
                                             .environmentObject(walletViewModel)

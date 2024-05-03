@@ -30,8 +30,13 @@ struct TradeSheetView: View {
     @State var successfulTransaction: Bool = false
     @State var message: String = ""
     
-    @State var isShowingPop: Bool = false
-    @State var toastMessage: String = ""
+    
+    @State var lessStocksToast: Bool = false
+    @State var lessMoneyToast: Bool = false
+    @State var sellZeroNonPositiveToast: Bool = false
+    @State var buyZeroNonPositiveToast: Bool = false
+    @State var textToast: Bool = false
+    
     
     @State var stockCount: Int = 0
     
@@ -56,126 +61,143 @@ struct TradeSheetView: View {
     
     func tryFailBuy() -> Bool {
         if stockCount == 0 {
-            print("Enter a value greater than 0")
+            buyZeroNonPositiveToast = true
             return false
         }
-//        if totalPrice > walletModel.amount {
-//            print("Can't buy more than your wallet")
-//            return false
-//        }
+        
+        if totalPrice > walletViewModel.amount {
+            lessMoneyToast = true
+            return false
+        }
+
         return true
     }
     
     func tryBuy() async {
-        
-//        print("Existing portfolio:\n\(portfolioModel.portfolioModel)")
-//        print("Ticker buying:\n\(stockDetailViewModel.stockOverview.ticker)")
-        
-        let purchaseCost = Float(stockCount) * stockDetailViewModel.stat.c;
-        
-        if let existingStockIndex = portfolioModel.portfolioModel.firstIndex(where: { $0.ticker ==  stockDetailViewModel.stockOverview.ticker}){
-            print("existing stock:\n\(portfolioModel.portfolioModel[existingStockIndex])")
+        if tryFailBuy() {
+            let purchaseCost = Float(stockCount) * stockDetailViewModel.stat.c;
             
-            let existingStock = portfolioModel.portfolioModel[existingStockIndex]
-            let newQuantity = existingStock.quantity + stockCount
-            let newAvgCost = (existingStock.totalCost + purchaseCost) / Float(newQuantity)
-            let newTotalCost = existingStock.totalCost + purchaseCost
-            let change = newAvgCost - stockDetailViewModel.stat.c
-            let marketValue = Float(newQuantity) * stockDetailViewModel.stat.c
+            if let existingStockIndex = portfolioModel.portfolioModel.firstIndex(where: { $0.ticker ==  stockDetailViewModel.stockOverview.ticker}){
+                print("existing stock:\n\(portfolioModel.portfolioModel[existingStockIndex])")
+                
+                let existingStock = portfolioModel.portfolioModel[existingStockIndex]
+                let newQuantity = existingStock.quantity + stockCount
+                let newAvgCost = (existingStock.totalCost + purchaseCost) / Float(newQuantity)
+                let newTotalCost = existingStock.totalCost + purchaseCost
+                let change = newAvgCost - stockDetailViewModel.stat.c
+                let marketValue = Float(newQuantity) * stockDetailViewModel.stat.c
+                
+                let updatedStock = PortfolioItem(
+                    quantity: newQuantity,
+                    avgCost: newAvgCost,
+                    change: change,
+                    marketValue: marketValue,
+                    totalCost: newTotalCost,
+                    name: existingStock.name,
+                    ticker: existingStock.ticker
+                )
+                
+                await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
+                
+            } else {
+                //print("existing stock not found")
+                let avgCost = purchaseCost / Float(stockCount)
+                let newStock = PortfolioItem(
+                    quantity: stockCount,
+                    avgCost: avgCost,
+                    change: avgCost - stockDetailViewModel.stat.c,
+                    marketValue: Float(stockCount) * stockDetailViewModel.stat.c,
+                    totalCost: purchaseCost,
+                    name: stockDetailViewModel.stockOverview.name,
+                    ticker: stockDetailViewModel.stockOverview.ticker
+                )
+                
+                await portfolioModel.updateOrCreatePortfolio(item: newStock)
+                
+            }
             
-            let updatedStock = PortfolioItem(
-                quantity: newQuantity,
-                avgCost: newAvgCost,
-                change: change,
-                marketValue: marketValue,
-                totalCost: newTotalCost,
-                name: existingStock.name,
-                ticker: existingStock.ticker
-            )
+            let newAmount = walletViewModel.amount - purchaseCost
+            await walletViewModel.updateWallet(updatedAmount: newAmount)
             
-            await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
-            
-        } else {
-            //print("existing stock not found")
-            let avgCost = purchaseCost / Float(stockCount)
-            let newStock = PortfolioItem(
-                quantity: stockCount,
-                avgCost: avgCost,
-                change: avgCost - stockDetailViewModel.stat.c,
-                marketValue: Float(stockCount) * stockDetailViewModel.stat.c,
-                totalCost: purchaseCost,
-                name: stockDetailViewModel.stockOverview.name,
-                ticker: stockDetailViewModel.stockOverview.ticker
-            )
-            
-            await portfolioModel.updateOrCreatePortfolio(item: newStock)
-            
+            message = "You have successfully bought \(stockCount) shares of \(stockDetailViewModel.stockOverview.ticker)"
+            successfulTransaction = true
         }
         
-        let newAmount = walletViewModel.amount - purchaseCost
-        await walletViewModel.updateWallet(updatedAmount: newAmount)
-        
-        message = "You have successfully bought \(stockCount) shares of \(stockDetailViewModel.stockOverview.ticker)"
-        successfulTransaction = true
     }
     
     func tryFailSell() -> Bool {
         // filter portfolio to find stock, 
         // if can't find it, can't sell it
         // if found, and stockCount > owned, can't sell
+        
+        if stockCount == 0 {
+            sellZeroNonPositiveToast = true
+            return false
+        }
+        
+        guard let stock = portfolioModel.portfolioModel.first(where: { $0.ticker == stockDetailViewModel.stockOverview.ticker }) else {
+            lessStocksToast = true
+            return false
+        }
+        
+        if stockCount > stock.quantity {
+            lessStocksToast = true
+            return false
+        }
+        
         return true
     }
     
     func trySell() async {
-        //        print("Existing portfolio:\n\(portfolioModel.portfolioModel)")
-        //        print("Ticker buying:\n\(stockDetailViewModel.stockOverview.ticker)")
-        
-        if let existingStockIndex = portfolioModel.portfolioModel.firstIndex(
-            where: { $0.ticker ==  stockDetailViewModel.stockOverview.ticker}){
-            
-            let existingStock = portfolioModel.portfolioModel[existingStockIndex]
-            let newQuantity = existingStock.quantity - stockCount
-            
-            if newQuantity < 0 {
-                print("Selling more than you have")
-                return
+        if tryFailSell() {
+            if let existingStockIndex = portfolioModel.portfolioModel.firstIndex(
+                where: { $0.ticker ==  stockDetailViewModel.stockOverview.ticker}){
+                
+                let existingStock = portfolioModel.portfolioModel[existingStockIndex]
+                let newQuantity = existingStock.quantity - stockCount
+                
+                if newQuantity < 0 {
+                    print("Selling more than you have")
+                    return
+                }
+                else if newQuantity == 0 {
+                    let updatedStock = PortfolioItem(
+                        quantity: existingStock.quantity,
+                        avgCost: existingStock.avgCost,
+                        change: existingStock.change,
+                        marketValue: existingStock.marketValue,
+                        totalCost: existingStock.totalCost,
+                        name: existingStock.name,
+                        ticker: existingStock.ticker
+                    )
+                    
+                    await portfolioModel.deletePortfolio(item: updatedStock)
+                } else {
+                    let newTotalCost = Float(newQuantity) * existingStock.avgCost
+                    let newMarketValue = Float(newQuantity) * stockDetailViewModel.stat.c
+                    let newChange = existingStock.avgCost - stockDetailViewModel.stat.c
+                    let newAvgCost = newTotalCost / Float(newQuantity)
+                    
+                    let updatedStock = PortfolioItem(
+                        quantity: newQuantity,
+                        avgCost: newAvgCost,
+                        change: newChange,
+                        marketValue: newMarketValue,
+                        totalCost: newTotalCost, name: stockDetailViewModel.stockOverview.name,
+                        ticker: stockDetailViewModel.stockOverview.ticker
+                    )
+                    
+                    await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
+                }
+                
+                let newAmount = walletViewModel.amount + Float(newQuantity) * stockDetailViewModel.stat.c
+                await walletViewModel.updateWallet(updatedAmount: newAmount)
+                
+                message = "You have successfully sold \(stockCount) shares of \(stockDetailViewModel.stockOverview.ticker)"
+                successfulTransaction = true
             }
-            else if newQuantity == 0 {
-                let updatedStock = PortfolioItem(
-                    quantity: existingStock.quantity,
-                    avgCost: existingStock.avgCost,
-                    change: existingStock.change,
-                    marketValue: existingStock.marketValue,
-                    totalCost: existingStock.totalCost,
-                    name: existingStock.name,
-                    ticker: existingStock.ticker
-                )
-                
-                await portfolioModel.deletePortfolio(item: updatedStock)
-            } else {
-                let newTotalCost = Float(newQuantity) * existingStock.avgCost
-                let newMarketValue = Float(newQuantity) * stockDetailViewModel.stat.c
-                let newChange = existingStock.avgCost - stockDetailViewModel.stat.c
-                let newAvgCost = newTotalCost / Float(newQuantity)
-                
-                let updatedStock = PortfolioItem(
-                    quantity: newQuantity,
-                    avgCost: newAvgCost,
-                    change: newChange,
-                    marketValue: newMarketValue,
-                    totalCost: newTotalCost, name: stockDetailViewModel.stockOverview.name,
-                    ticker: stockDetailViewModel.stockOverview.ticker
-                )
-                
-                await portfolioModel.updateOrCreatePortfolio(item: updatedStock)
-            }
-            
-            let newAmount = walletViewModel.amount + Float(newQuantity) * stockDetailViewModel.stat.c
-            await walletViewModel.updateWallet(updatedAmount: newAmount)
-            
-            message = "You have successfully sold \(stockCount) shares of \(stockDetailViewModel.stockOverview.ticker)"
-            successfulTransaction = true
         }
+        
     }
     
     
@@ -236,12 +258,10 @@ struct TradeSheetView: View {
                 HStack{
                     Button {
                         Task {
-//                            await tryBuy()
+                            await tryBuy()
 //                            withAnimation {
 //                                successfulTransaction = true
 //                            }
-                            toastMessage = "Something"
-                            isShowingPop = true
                         }
                     } label: {
                         Text("Buy")
@@ -257,9 +277,9 @@ struct TradeSheetView: View {
                     Button {
                         Task {
                             await trySell()
-                            withAnimation {
-                                successfulTransaction = true
-                            }
+//                            withAnimation {
+//                                successfulTransaction = true
+//                            }
                         }
                     } label: {
                         Text("Sell")
@@ -270,7 +290,12 @@ struct TradeSheetView: View {
                             .padding()
                     }
                 }
-                .toast(isShowing: $isShowingPop, text: Text("Cannot buy non-positive shares"))
+
+                .toast(isShowing: $buyZeroNonPositiveToast, text: Text("Cannot buy non-positive shares"))
+                .toast(isShowing: $lessMoneyToast, text: Text("Not enough money to buy"))
+                .toast(isShowing: $lessStocksToast, text: Text("Not enough shares to sell"))
+                .toast(isShowing: $textToast, text: Text("Please enter a valid amount"))
+                .toast(isShowing: $sellZeroNonPositiveToast, text: Text("Cannot sell non-positive shares"))
             }
     }
             
