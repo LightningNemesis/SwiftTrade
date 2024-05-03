@@ -457,13 +457,22 @@ struct HomeScreenView: View {
                                     .onMove(perform: move)
                                 }
                                 
-                                Text("Powered by Finnhub.io")
+                                if let url = URL(string: "https://finnhub.io/") {
+                                    Link("Powered by Finnhub.io", destination: url)
                                         .font(.subheadline)
                                         .fontWeight(.light)
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .padding()
                                         .background(.white)
                                         .cornerRadius(10)
+                                }
+//                                Text("Powered by Finnhub.io")
+//                                        .font(.subheadline)
+//                                        .fontWeight(.light)
+//                                        .frame(maxWidth: .infinity, alignment: .center)
+//                                        .padding()
+//                                        .background(.white)
+//                                        .cornerRadius(10)
                             }
                         }
                         
@@ -582,14 +591,24 @@ struct SearchBarView: View {
     
     var body: some View {
         TextField(
-            "🔎 Search",
+            "Search",
             text: $stockInput
         )
+        .padding(.leading, 35)
 //        .onChange(of: stockInput, perform: { newValue in
 //            if newValue.count >= 1 {
 //                onSearch(newValue)
 //            }
 //        })
+        .overlay(
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading) // Aligns icon to the left
+//                    .padding(.leading) // Adds space from the edge of the TextField
+                Spacer()
+            }
+        )
         .focused(isTextFieldFocused)
         .padding(.top, 10)
         .padding(.bottom, 10)
